@@ -1,4 +1,4 @@
-"""Cài bộ làm video AI của An Bình AI lên máy Windows của học viên.
+﻿"""Cài bộ làm video AI của An Bình AI lên máy Windows của học viên.
 
 Cách chạy (PowerShell, trong thư mục kho vừa tải về):
     python cai_dat.py            kiểm + tự cài phần mềm còn thiếu + chép skill/agent
@@ -10,7 +10,7 @@ Việc script làm:
    Thiếu thì tự cài bằng winget / pip, cài xong kiểm lại.
    Bị chặn (diệt virus, thiếu quyền, không có winget) thì in đúng lệnh PowerShell để tự dán.
 2. Chép skill vào %USERPROFILE%\\.claude\\skills và agent vào %USERPROFILE%\\.claude\\agents.
-   KHÔNG ghi đè tệp đã có: tệp trùng tên thì bỏ qua và báo lại.
+   Tệp đã có y hệt thì bỏ qua; khác thì cất bản cũ vào ~/.claude/sao-luu-an-binh rồi thay bản mới (chạy lại để cập nhật).
 3. Chạy bộ cài riêng của skill video-ngan-nguoi-noi (scripts/cai_dat.py: thư viện Python, Remotion, trình duyệt
    Playwright; agent đã có thì không ghi đè). Phần mềm chung (FFmpeg, Node, Whisper, edge-tts) đã lo ở bước 1 nên
    bộ cài skill chỉ kiểm lại, không cài trùng.
@@ -159,24 +159,34 @@ def kiem_va_cai(chi_kiem):
 
 
 def chep(nguon, dich, ten_nhom):
-    """Chép cây thư mục, KHÔNG ghi đè tệp đã có. Trả (số tệp chép, danh sách trùng)."""
+    """Chép cây thư mục của bộ An Bình. Tệp đã có y hệt thì bỏ qua; tệp đã có mà KHÁC (chạy lại Câu B để lấy bản mới,
+    24/11/2026) thì cất bản cũ vào ~/.claude/sao-luu-an-binh/<giờ>/ rồi thay bằng bản mới. Trả (số tệp chép, danh sách trùng)."""
+    import datetime
+    import filecmp
     if not nguon.is_dir():
         print(f"  ✘ Không thấy {nguon} — tải lại kho cho đủ.")
         return 0, []
-    da_chep, trung = 0, []
+    da_chep, trung, cap_nhat = 0, [], 0
+    luu = nha() / ".claude" / "sao-luu-an-binh" / datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     for f in sorted(nguon.rglob("*")):
         if not f.is_file() or "__pycache__" in f.parts:
             continue
         dich_f = dich / f.relative_to(nguon)
         if dich_f.exists():
-            trung.append(dich_f)
-            continue
+            if filecmp.cmp(f, dich_f, shallow=False):
+                trung.append(dich_f)
+                continue
+            cu = luu / ten_nhom / f.relative_to(nguon)
+            cu.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(dich_f, cu)
+            cap_nhat += 1
         dich_f.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(f, dich_f)
         da_chep += 1
     so = len([d for d in nguon.iterdir() if d.is_dir()]) if ten_nhom == "skill" else len(list(nguon.glob("*.md")))
-    print(f"  ✔ {ten_nhom}: {so} {ten_nhom} → {dich} (chép {da_chep} tệp, bỏ qua {len(trung)} tệp đã có)")
-    return da_chep, trung
+    print(f"  ✔ {ten_nhom}: {so} {ten_nhom} → {dich} (chép {da_chep} tệp, trong đó cập nhật {cap_nhat} tệp lên bản mới; "
+          f"{len(trung)} tệp đã đúng bản)" + (f"; bản cũ cất ở {luu}" if cap_nhat else ""))
+    return da_chep, []
 
 
 def cai_skill_video(thu_muc):
