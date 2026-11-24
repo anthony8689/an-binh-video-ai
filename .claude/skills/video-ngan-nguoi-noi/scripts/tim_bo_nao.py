@@ -60,7 +60,7 @@ def tim():
     cho = [nha / "Desktop", nha / "Documents", nha / "Downloads"]
     cho += sorted(nha.glob("OneDrive*"))
     # Thư mục cá nhân trước; thấy bộ não ở đó thì dùng luôn, KHÔNG lục sang ổ khác (thử 24/11/2026: máy có bản bộ não
-    # thử nghiệm ở E:\TEMP bị chọn nhầm thay cho Second Brain thật trong Documents). Ưu tiên Bộ Não Khởi Động hơn Obsidian.
+    # thử nghiệm ở ổ khác bị chọn nhầm thay cho Second Brain thật trong Documents). Ưu tiên Bộ Não Khởi Động hơn Obsidian.
     for nhom in (cho, [Path(f"{o}:/") for o in "DEF" if os.path.exists(f"{o}:/")]):
         thay = []
         for c in nhom:
