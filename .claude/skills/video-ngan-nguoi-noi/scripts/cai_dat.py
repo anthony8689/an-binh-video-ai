@@ -103,7 +103,22 @@ if not (ENGINE / "node_modules").exists():
     print("Tự cài Remotion (vài phút)...")
     if subprocess.run(["npm.cmd" if sys.platform == "win32" else "npm", "install", "--no-audit", "--no-fund"], cwd=ENGINE).returncode:
         dung_cho_dan([f'cd "{ENGINE}"; npm install --no-audit --no-fund'])
+# Trình duyệt dựng hình của Remotion (khoảng 120 MB): tải luôn lúc cài, để lần dựng đầu trong lớp không phải chờ (24/11/2026)
+if (ENGINE / "node_modules").exists():
+    npx = "npx.cmd" if sys.platform == "win32" else "npx"
+    if subprocess.run([npx, "remotion", "browser", "ensure"], cwd=ENGINE).returncode:
+        print(f'⚠ Chưa tải được trình duyệt Remotion; lần dựng đầu sẽ tự tải. Hoặc tự dán:  cd "{ENGINE}"; npx remotion browser ensure')
+    else:
+        print("✔ Remotion và trình duyệt dựng hình đã sẵn sàng")
 print("✔ engine:", ENGINE)
+
+# Mô hình nghe lời Whisper large-v3 (khoảng 3 GB): tải luôn lúc cài ở nhà, tránh cả lớp cùng tải trên một mạng (24/11/2026)
+print("Tải mô hình nghe lời Whisper large-v3 (khoảng 3 GB, chỉ lần đầu)...")
+r = subprocess.run([sys.executable, "-c", "from faster_whisper.utils import download_model; print(download_model('large-v3'))"])
+if r.returncode:
+    print(f'⚠ Chưa tải được mô hình Whisper; lần làm video đầu sẽ tự tải. Hoặc tự dán:  & "{sys.executable}" -c "from faster_whisper.utils import download_model; download_model(\'large-v3\')"')
+else:
+    print("✔ mô hình Whisper đã sẵn sàng")
 
 # Agent đi kèm gói (24/11/2026): video-dung (dựng) và video-cham-diem (chấm độc lập), chép vào ~/.claude/agents
 AG = Path.home() / ".claude" / "agents"
@@ -130,4 +145,4 @@ if len(sys.argv) > 1:
     from nhap_kho import nhap
     nhap(kenh)  # có gói KHO-HOC-VIEN (Drive của lớp) trong Downloads thì giải nén cảnh, nhạc vào kênh
 print("\n⚠ Agent mới (video-dung, video-cham-diem) chỉ nhận ở phiên Claude mở SAU khi cài: đóng hẳn Claude, mở lại.")
-print("\nCài xong. Whisper tải mô hình large-v3 (khoảng 3 GB) ở lần chạy đầu. GPU NVIDIA giúp nhanh hơn nhiều, không có vẫn chạy được.")
+print("\nCài xong. Remotion, trình duyệt dựng hình và mô hình Whisper đã tải sẵn (nếu bước nào báo ⚠ thì lần làm video đầu sẽ tự tải). GPU NVIDIA giúp nhanh hơn nhiều, không có vẫn chạy được.")
