@@ -126,5 +126,8 @@ if len(sys.argv) > 1:
         print("✔ tạo", f, "(giọng AI miễn phí; có giọng nhân bản thì điền giongAI sau)")
     for x in ("kho-canh", "du-an", "anh-video-cua-toi"):
         (kenh / x).mkdir(exist_ok=True)
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from nhap_kho import nhap
+    nhap(kenh)  # có gói KHO-HOC-VIEN (Drive của lớp) trong Downloads thì giải nén cảnh, nhạc vào kênh
 print("\n⚠ Agent mới (video-dung, video-cham-diem) chỉ nhận ở phiên Claude mở SAU khi cài: đóng hẳn Claude, mở lại.")
 print("\nCài xong. Whisper tải mô hình large-v3 (khoảng 3 GB) ở lần chạy đầu. GPU NVIDIA giúp nhanh hơn nhiều, không có vẫn chạy được.")

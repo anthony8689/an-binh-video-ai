@@ -33,7 +33,7 @@ Muốn cắt livestream thành nhiều clip, làm biến thể quảng cáo hay 
    Script kiểm và tự cài phần mềm còn thiếu (winget/pip), chép skill vào `%USERPROFILE%\.claude\skills` và agent vào `%USERPROFILE%\.claude\agents` (**không ghi đè** tệp bạn đã có), rồi chạy bộ cài riêng của skill `video-ngan-nguoi-noi` (thư viện Python, Remotion, trình duyệt chụp web; lần đầu mất vài phút), cuối cùng in **MÁY SẴN SÀNG**. Bị diệt virus hoặc thiếu quyền chặn thì script in đúng lệnh PowerShell để bạn tự dán.
    Muốn tạo sẵn thư mục làm việc (hồ sơ kênh mẫu với giọng AI miễn phí, thư mục `anh-video-cua-toi`, `du-an`): `python cai_dat.py --thu-muc "D:\VideoCuaToi"`.
 4. **Đóng hẳn Claude rồi mở lại** để nhận skill và agent mới (agent chỉ được nhận ở phiên mở sau khi cài).
-5. Tải **kho tài nguyên** (nhạc nền, cảnh trám, font, mẫu): [LINK KHO TÀI NGUYÊN DRIVE] (sẽ cập nhật) — giải nén vào thư mục làm việc.
+5. Tải **kho tài nguyên** `KHO-HOC-VIEN.zip` (226 cảnh AI không người, nhạc nền, tiếng hiệu ứng; khoảng 1,5 GB) từ link Drive giảng viên gửi trong nhóm lớp, để nguyên trong thư mục **Downloads**. Không cần giải nén: lần làm video đầu, Claude tự nhận. Chưa có gói thì vẫn làm video được (nền màu, chỉ có giọng).
 
 ## Phần mềm cần
 

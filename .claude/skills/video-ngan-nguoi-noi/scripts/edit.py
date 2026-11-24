@@ -47,6 +47,8 @@ def main():
     kenh, f = Path(a.kenh).resolve(), Path(a.file).resolve()
     if not (kenh / "ho-so-kenh.json").exists():
         sys.exit(f"✘ {kenh} chưa có ho-so-kenh.json, chạy cai_dat.py \"{kenh}\" trước.")
+    from nhap_kho import nhap
+    nhap(kenh)  # có gói KHO-HOC-VIEN trong Downloads thì tự nhận nhạc, cảnh
     du_an = kenh / "du-an"
     du_an.mkdir(exist_ok=True)
     so = 1 + max([int(m.group(1)) for x in du_an.iterdir() if (m := re.match(r"(\d+)-", x.name))] or [0])

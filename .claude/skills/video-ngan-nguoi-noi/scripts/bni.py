@@ -72,6 +72,9 @@ def main():
     da = Path(sys.argv[1]).resolve()
     h = ho_so(da)
     kenh = Path(h["_goc"])
+    from nhap_kho import nhap
+    if nhap(kenh):  # có gói KHO-HOC-VIEN trong Downloads thì tự nhận cảnh, nhạc rồi đọc lại hồ sơ
+        h = ho_so(da)
     b = doc(da / "bni.json")
     dong = [x for x in (da / "loi.txt").read_text(encoding="utf-8").splitlines() if x.strip()]
     phan = b["phan"]
