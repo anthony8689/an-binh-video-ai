@@ -45,6 +45,15 @@ with tempfile.TemporaryDirectory() as _t:
     ok = ok and bool(_kk(_t))
 hong += not ok
 print(("✔ " if ok else "✘ ") + "luật 9: mã cảnh ket-comment + TOI3 không bị bắt nhầm, tiêu đề xin comment vẫn bị chặn")
+# Lặp ở chỗ nối (24/11/2026): nói hỏng sát chỗ cắt thì bắt, câu bình thường có "các bạn" ở cả hai đoạn thì không
+from nghiem_thu import lap_noi
+_g = lambda a, b: a == b
+ok = (lap_noi("không gì đảm bảo cho các bạn".split(), "các bạn sẽ tìm được".split(), _g) == 2
+      and lap_noi("đảm bảo các bạn ừ".split(), "các bạn sẽ".split(), _g) == 2
+      and lap_noi("tìm được việc sau khi các bạn ra trường".split(), "các bạn có đang phải".split(), _g) == 0
+      and lap_noi("được nhận lương hàng tháng đến một nghìn hai trăm euro trong suốt".split(), "được nhận lương hàng tháng".split(), _g) == 5)
+hong += not ok
+print(("✔ " if ok else "✘ ") + "lặp ở chỗ nối: nói hỏng sát chỗ cắt bị bắt, câu bình thường không bị bắt nhầm")
 # Nhạc: chỉ bài đã kiểm quyền dùng ngoài YouTube
 from kiem_chot import kiem_nhac
 ok = not kiem_nhac("future-bass") and bool(kiem_nhac("cong-nghe")) and bool(kiem_nhac(""))

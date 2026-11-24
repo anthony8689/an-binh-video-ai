@@ -26,12 +26,10 @@
     "model": "gemini-nano-banana-2.1"
   },
   "giongAI": {
-    "khoa": "Đường dẫn file chứa API key Vibi",
-    "provider": "minimax",
-    "voice_id": "Mã giọng đã nhân bản",
-    "model": "speech-2.8-hd",
-    "ngon_ngu": "Vietnamese",
-    "toc": 1.0
+    "provider": "edge",
+    "voice_id": "vi-VN-HoaiMyNeural",
+    "toc": 1.0,
+    "_ghi": "Giọng AI miễn phí (nữ HoaiMy, nam NamMinh). Có giọng nhân bản Vibi thì đổi thành: khoa (file API key), provider minimax, voice_id, model speech-2.8-hd, ngon_ngu Vietnamese"
   },
   "anhThamChieu": [
     "anh-mat/1.jpg",

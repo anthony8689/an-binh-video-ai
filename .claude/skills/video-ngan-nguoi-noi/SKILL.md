@@ -1,6 +1,6 @@
 ---
 name: video-ngan-nguoi-noi
-description: Sản xuất trọn một video ngắn dọc 9:16 dạng người thật nói đầu và cuối, đoạn giữa là giọng trên mô hình đồ họa và cảnh AI: viết kịch bản từ video mẫu hoặc chủ đề, kiểm nguồn, nhắc tạo cảnh trám trên Google Flow, dựng từ file quay, tự nghiệm thu, làm ảnh bìa, viết content đăng kèm và giao đủ trong một thư mục. Dùng ngay khi người dùng muốn làm video review công cụ, video giải nỗi đau, viết kịch bản video ngắn, làm lại theo video mẫu, dựng file vừa quay theo phong cách kênh, viết caption cho video của kênh, hoặc "Dựng một video giới thiệu bản thân cho tôi theo cấu trúc BNI" / "làm video BNI" (tự hỏi một lượt thông tin còn thiếu, tự ghi hồ sơ, tự dùng ảnh, video của người dùng nếu có, không có thì chế độ không mặt; tự gọi agent nguoi-dung-video dựng rồi nguoi-soat-video soát, tự sửa, báo kèm phiếu chấm, không hỏi duyệt từng bước), kể cả khi không nói chữ "skill". Không dùng cho video quảng cáo bán hàng hay cắt livestream.
+description: Sản xuất trọn một video ngắn dọc 9:16 dạng người thật nói đầu và cuối, đoạn giữa là giọng trên mô hình đồ họa và cảnh AI: viết kịch bản từ video mẫu hoặc chủ đề, kiểm nguồn, nhắc tạo cảnh trám trên Google Flow, dựng từ file quay, tự nghiệm thu, làm ảnh bìa, viết content đăng kèm và giao đủ trong một thư mục. Dùng ngay khi người dùng muốn làm video review công cụ, video giải nỗi đau, viết kịch bản video ngắn, làm lại theo video mẫu, dựng file vừa quay theo phong cách kênh, viết caption cho video của kênh, hoặc câu ngắn "Edit video <tên file> cho tôi" (tự cắt lặng, nói hỏng, thêm phụ đề, nhạc; agent video-dung dựng, video-cham-diem chấm), hoặc "Dựng một video giới thiệu bản thân cho tôi theo cấu trúc BNI" (tự hỏi một lượt thông tin còn thiếu, tự ghi hồ sơ, tự dùng ảnh, video của người dùng nếu có, không có thì không mặt, giọng AI miễn phí), kể cả khi không nói chữ "skill". Không hỏi duyệt từng bước. Không dùng cho cắt livestream, làm biến thể quảng cáo hay dựng có duyệt từng bước (dùng skill ab-edit).
 ---
 
 # Sản xuất video ngắn người nói
@@ -17,7 +17,7 @@ Mọi thứ người dẫn đã duyệt nằm trong `references/da-chot.md`, ph�
 - Video giới thiệu công cụ, skill, plugin: kiểm tình trạng hiện tại của từng món ở nguồn gốc, ghi `tinh-trang.json` (`{"ngayKiem": "dd/mm/yyyy", "mon": [{"ten", "trangThai": "co-san" | "plugin-chinh-thuc" | "cai-them", "cachLay", "nguon"}]}`). Món có sẵn thì lời nói rõ "có sẵn, gõ lệnh là dùng", không gọi là thứ phải cài. `lap_canh.py` và `nghiem_thu.py` chặn nếu thiếu hoặc sai (luật 15).
 - `nghiem_thu.py` đọc lại chữ đã gửi (`giong/*.da-gui.txt`); sai luật là ✘, không bàn giao.
 - Câu kết (luật 9, đổi 16/11/2026): câu hỏi thật, rồi chỉ về bình luận ghim ("Hướng dẫn cài từng bước mình để sẵn ở bình luận ghim nhé!"). Cấm "Comment CÀI, mình gửi...", "bình luận chữ ... để nhận", "inbox nhận" vì Meta coi là kéo tương tác, YouTube cấm đổi thưởng lấy tương tác. Máy chặn ở bản đọc, `loi.txt` và `canh.json`. Content có mục bình luận ghim soạn sẵn với chỗ trống `[DÁN LINK HƯỚNG DẪN]`.
-- Sửa skill xong luôn chạy `python dong_goi.py` (thư mục cha của skill): chạy `scripts/hoi_quy.py` trước, hỏng một mục là không đóng gói. Gặp lỗi mới thì thêm mẫu vào `scripts/hoi_quy/` trước khi sửa.
+- Sửa skill xong luôn chạy `python scripts/hoi_quy.py`: hỏng một mục là chưa được dùng bản sửa. Gặp lỗi mới thì thêm mẫu vào `scripts/hoi_quy/` trước khi sửa.
 
 ## Dò trùng trước khi làm (bắt buộc)
 
@@ -48,6 +48,9 @@ Mở từng video trong thư mục chủ đề, xem vài khung hình và nghe l�
 Không chắc file nào là file quay thì đối chiếu mặt với ảnh trong `anhThamChieu` của hồ sơ kênh. Nhận ra được thì làm luôn, không hỏi lại người dùng.
 
 ## Chuẩn bị
+
+Câu lệnh đầu tiên trên máy mới: chạy `python cai_dat.py "<thư mục kênh>"` NGAY, không hỏi. Script tự cài phần mềm thiếu (winget, pip, npm), tự kiểm lại, tự chép agent; chỉ khi máy chặn (diệt virus như Bkav, thiếu quyền) nó in lệnh PowerShell: đưa nguyên các lệnh đó cho người dùng dán vào PowerShell chạy quyền quản trị, rồi chạy lại `cai_dat.py`.
+
 
 0. Cần trang nhắc lời khi quay: `python nhac_loi.py <dự án>`, đọc từ `loi-thoai.txt`.
 1. Tìm `ho-so-kenh.json` ở thư mục kênh. Chưa có hoặc chưa cài: đọc `references/so-tay.md`, chạy `scripts/cai_dat.py`.
@@ -142,7 +145,7 @@ Giữ nguyên từ tiếng Anh để máy tự đọc, chỉ viết lại đúng
 
 ## Video giới thiệu bản thân (BNI, 30 giây)
 
-Câu lệnh ngắn kiểu "Dựng một video giới thiệu bản thân cho tôi theo cấu trúc BNI" là đủ. Không phải video kênh: bỏ dò trùng, đọc thử, ảnh bìa, content, tờ hướng dẫn, ghi sổ video. KHÔNG hỏi duyệt kịch bản, giọng, cảnh hay ảnh tĩnh: chỉ được hỏi đúng một lượt ở bước 2 (khi thiếu thông tin), còn lại tự làm tới bàn giao. Chưa có `ho-so-kenh.json` thì tự tạo từ `references/ho-so-kenh.mau.json` trong thư mục đang mở (thư mục kênh = thư mục đang mở), giọng mặc định edge-tts. Làm đúng 6 bước, mục tiêu dưới 15 phút kể cả lúc hỏi đáp:
+Câu lệnh ngắn kiểu "Dựng một video giới thiệu bản thân cho tôi theo cấu trúc BNI" là đủ. Không phải video kênh: bỏ dò trùng, đọc thử, ảnh bìa, content, tờ hướng dẫn, ghi sổ video. Làm đúng 5 bước, mục tiêu dưới 10 phút kể cả lúc hỏi đáp:
 
 **1. Đọc hồ sơ (1 phút).** Có Second Brain (công cụ `sb_search`, `sb_read`): đọc `00-START`, ghi chú hồ sơ cá nhân và ghi chú sản phẩm, dịch vụ chính; tìm toàn văn tối đa 2 lần. Không có Second Brain thì tìm `ho-so-bni.md` trong thư mục kênh. Cần đủ 7 ý: tên; nghề và thương hiệu; giúp ai; giải quyết việc gì (2–3 việc); một bằng chứng có số hoặc kết quả thật; khách lý tưởng ("khách tốt cho tôi là…"); liên hệ (Zalo, web). Câu ghi nhớ thì tự viết từ các ý trên.
 
@@ -152,22 +155,36 @@ Câu lệnh ngắn kiểu "Dựng một video giới thiệu bản thân cho tô
 3. Một kết quả nổi bật có số: bao nhiêu khách, bao nhiêu năm, kết quả cụ thể nào?
 4. Khách tốt nhất để người khác giới thiệu cho anh/chị là ai? (càng cụ thể càng tốt, ví dụ "chị em văn phòng 30–45 tuổi bị đau vai gáy")
 5. Số Zalo hoặc trang web để ghi ở cuối video?
-6. Anh/chị có ảnh hoặc video của chính mình không? Có thì thả 2–4 file vào thư mục `anh-video-cua-toi` (em tạo sẵn và đưa đường dẫn). Muốn dùng giọng thật thì quay điện thoại đọc đúng lời em gửi, thả vào cùng thư mục, đặt tên có chữ `doc-loi`. Không có thì em dùng cảnh có sẵn và giọng đọc AI miễn phí.
+6. Anh/chị có ảnh hoặc video của chính mình, cửa hàng, sản phẩm không? Có thì thả 2–4 file vào thư mục `anh-video-cua-toi` (em tạo sẵn và đưa đường dẫn). Muốn dùng giọng thật thì quay điện thoại đọc đúng lời em gửi, thả vào cùng thư mục, đặt tên có chữ `doc-loi`. Không có thì em dùng cảnh có sẵn và giọng đọc AI miễn phí.
 Chờ trả lời rồi làm tiếp, không hỏi thêm lượt nữa; ý nào họ bỏ trống thì bỏ phần đó cho gọn, không bịa.
 
 **3. Ghi hồ sơ.** Ghi các câu trả lời thành MỘT ghi chú mới (không sửa ghi chú cũ): có Second Brain thì `sb_create` tên "Ho so ca nhan BNI - <tên>" (tự vào `00-Inbox/AI/...`), không có thì `ho-so-bni.md` ở thư mục kênh. Báo họ tên ghi chú. Lần sau đọc lại ghi chú này, không hỏi lại.
 
-**4. Viết lời (1 phút).** 5 phần BNI, 13–16 dòng `loi.txt` (mỗi dòng ≤ 28 ký tự, dài hơn là phụ đề rớt chữ xuống dòng), khoảng 105–120 chữ đọc ra 24–27 giây: (1) "Xin chào, tôi là … " tên, nghề, thương hiệu; (2) giúp ai, việc gì; (3) một bằng chứng; (4) "Khách tốt cho tôi là …"; (5) câu ghi nhớ + nhắc lại tên. Chỉ dùng thông tin có trong hồ sơ. `doc-tts.txt` cùng lời, một đoạn, vế dài nối bằng "và", "để", "mà", số viết bằng chữ, có ít nhất một dấu chấm than; `loi.txt` đặt dấu phẩy ở chỗ chuyển ý để `nghi_dau_phay.py` chèn nghỉ. Viết `bni.json` (khuôn trong đầu `scripts/bni.py`): `phan` là số dòng của 5 phần; chữ trên hình ngắn (tiêu đề ≤ 14 ký tự mỗi dòng, `ghiNho` ≤ 22 ký tự); `canh` chọn 3 clip hợp nghề cho vai mở, bằng chứng, kết từ danh mục cảnh (nhóm viet-nam, nganh-nghe, vd spa, làm đẹp, bán lẻ: K068, K080; văn phòng: K076; phòng khám: K064; kết đẹp: K082 sân thượng hoàng hôn), người làm công nghệ mới dùng cảnh công nghệ (N031, N047); `lienHe` từ 2 chữ trở lên (một chữ thì khung hiện "XEM BÌNH LUẬN GHIM").
+**4. Viết lời (1 phút).** 5 phần BNI, 13–16 dòng `loi.txt` (mỗi dòng ≤ 28 ký tự, dài hơn là phụ đề rớt chữ xuống dòng), khoảng 105–120 chữ đọc ra 24–27 giây: (1) "Xin chào, tôi là … " tên, nghề, thương hiệu; (2) giúp ai, việc gì; (3) một bằng chứng; (4) "Khách tốt cho tôi là …"; (5) câu ghi nhớ + nhắc lại tên. Chỉ dùng thông tin có trong hồ sơ. `doc-tts.txt` cùng lời, một đoạn, vế dài nối bằng "và", "để", "mà", số viết bằng chữ, có ít nhất một dấu chấm than; `loi.txt` đặt dấu phẩy ở chỗ chuyển ý để `nghi_dau_phay.py` chèn nghỉ. Viết `bni.json` (khuôn trong đầu `scripts/bni.py`): `phan` là số dòng của 5 phần; chữ trên hình ngắn (tiêu đề ≤ 14 ký tự mỗi dòng, `ghiNho` ≤ 22 ký tự); `canh` chọn 3 clip hợp nghề cho vai mở, bằng chứng, kết từ danh mục cảnh (nhóm viet-nam, nganh-nghe, mặc định nền màu dịu K055, K049 và K082 sân thượng hoàng hôn, hợp mọi nghề; văn phòng: K076; phòng khám: K064; bán lẻ: K068. Kho chưa có cảnh spa, làm đẹp, ăn uống: khuyên học viên thả thêm ảnh cửa hàng, sản phẩm thật của mình vào `anh-video-cua-toi`, đẹp hơn mọi cảnh kho), người làm công nghệ mới dùng cảnh công nghệ (N031, N047); `lienHe` từ 2 chữ trở lên (một chữ thì khung hiện "XEM BÌNH LUẬN GHIM").
 
-**5. Dựng một lệnh (3–4 phút) — giao agent `nguoi-dung-video`.** Gọi Agent tool (subagent_type `nguoi-dung-video`) kèm đường dẫn dự án, `bni.json`, `loi.txt`, `doc-tts.txt`; agent chạy lệnh dưới đây và tự sửa tới khi `nghiem_thu.py` ĐẠT. Không gọi được agent thì tự chạy. Dự án `<thư mục kênh>/du-an/<số>-bni-<tên>/`, rồi:
+**5. Dựng và chấm bằng agent, không hỏi duyệt (4–6 phút).** Giao agent `video-dung` (kèm đường dẫn hồ sơ, thư mục kênh, có ảnh hay không) dựng theo đoạn dưới; xong giao agent `video-cham-diem` chấm độc lập. Phiếu SỬA LẠI thì gửi lại `video-dung` sửa, tối đa 3 vòng. Báo người dùng: đường dẫn video, tên ghi chú hồ sơ, phiếu chấm, thời gian. Agent chưa có trên máy thì chạy `python cai_dat.py` (tự chép agent) hoặc tự làm đoạn dưới rồi chấm theo thang trong `agents/video-cham-diem.md`.
+
+Đoạn dựng (agent `video-dung` làm, 3–4 phút): Dự án `<thư mục kênh>/du-an/<số>-bni-<tên>/`, rồi:
 ```bash
 python bni.py "<dự án>"
 ```
-Script tự: nhận ảnh, video trong `<thư mục kênh>/anh-video-cua-toi/` (ảnh tĩnh thành clip chuyển động nhẹ, video cắt 8 giây không tiếng) làm cảnh mở, bằng chứng, kết; không có thì chế độ không mặt (`loai.txt` = `gioi-thieu khong-mat`, chặn clip thư mục "CO MAT", chỉ lấy cảnh thật không người, chặn cảnh hoạt hình); tạo giọng (`giongTuQuay` trong `bni.json` thì lấy tiếng video tự quay, không thì `giongAI` của hồ sơ; học viên chưa có giọng nhân bản đặt `"giongAI": {"provider": "edge", "voice_id": "vi-VN-HoaiMyNeural"}` hoặc `vi-VN-NamMinhNeural`, cần `pip install edge-tts`); lập `canh.json`; chạy `dung.py --het`. Lỗi chữ tràn thì rút gọn chữ trong `bni.json` rồi chạy lại. Xem `to-soat.jpg`.
-
-**6. Soát độc lập rồi báo.** Gọi agent `nguoi-soat-video` chỉ với đường dẫn `render/thanh-pham.mp4`, `loi.txt` và chữ "video BNI" (không kể đã làm gì). Phiếu SỬA LẠI → gửi nguyên phiếu cho `nguoi-dung-video` sửa, rồi gọi `nguoi-soat-video` mới soát lại; tối đa 3 vòng. ĐẠT thì báo người dùng: đường dẫn video, thời lượng, lời đã đọc, tên ghi chú hồ sơ, **phiếu chấm cuối (dán nguyên bảng)**, phần chưa nghe bằng tai. Câu lệnh ngắn "Edit video <tên file> cho tôi" (file quay thô) không thuộc skill này: dùng skill `ab-edit`.
+Script tự: nhận ảnh, video trong `<thư mục kênh>/anh-video-cua-toi/` (ảnh tĩnh thành clip chuyển động nhẹ, video cắt 8 giây không tiếng) làm cảnh mở, bằng chứng, kết; không có thì chế độ không mặt (`loai.txt` = `gioi-thieu khong-mat`, chặn clip thư mục "CO MAT", chỉ lấy cảnh thật không người, chặn cảnh hoạt hình); tạo giọng (`giongTuQuay` trong `bni.json` thì lấy tiếng video tự quay, không thì `giongAI` của hồ sơ; học viên chưa có giọng nhân bản đặt `"giongAI": {"provider": "edge", "voice_id": "vi-VN-HoaiMyNeural"}` hoặc `vi-VN-NamMinhNeural`, cần `pip install edge-tts`); lập `canh.json`; chạy `dung.py --het`. Lỗi chữ tràn thì rút gọn chữ trong `bni.json` rồi chạy lại. Xem `to-soat.jpg` rồi giao `render/thanh-pham.mp4`.
 
 Luật đi kèm (máy kiểm): `loai.txt` có `gioi-thieu` thì `tao_giong.py`, `nghiem_thu.py` bỏ luật câu kết của kênh, vẫn giữ cách đọc, luật 9, cảm xúc, độ dài vế. Cảnh cho video giới thiệu phải thật, sang, hợp người làm nghề (văn phòng, góc làm việc, màn hình số liệu, thành phố Việt Nam); KHÔNG dùng hoạt hình, đồ chơi tí hon, đất sét, 3D cartoon, robot chạy băng chuyền như xe lửa (người dẫn chê 24/11/2026); `lap_canh.py` chặn clip có ghi chú "tí hon", "đất sét", "hoạt hình", "cartoon", "đồ chơi", nên thêm clip mới vào kho thì ghi đúng kiểu ở cột ghi_chu. Tự đặt cảnh bằng tay thì nhớ cách đếm mốc trong `mo-hinh-canh.md`.
+
+## Edit video từ file quay (câu "Edit video <tên file> cho tôi")
+
+Không hỏi duyệt từng bước. Tìm file người dùng nói (thư mục làm việc, Downloads, Desktop; trùng tên thì lấy file mới nhất và nói rõ đã lấy file nào). Rồi:
+
+1. Nghe thử 20 giây đầu (`whisper_vi.py`) để đặt tiêu đề mở đầu đúng ý trong lời, tối đa 14 ký tự mỗi dòng, không thêm ý ngoài lời.
+2. Giao agent `video-dung` (hoặc tự chạy):
+```bash
+python edit.py "<thư mục kênh>" "<file quay>" --tieu-de "DÒNG 1|DÒNG 2"
+```
+Lệnh dừng ở ảnh soát. **Soát phụ đề (bắt buộc, 1 phút):** đọc `loi.txt`, sửa chính tả Whisper nghe sai (vd "đất đỏ" → "đắt đỏ"), ngắt lại dòng theo cụm nghĩa (không cắt đôi từ ghép "sinh / viên", "học / phí"), mỗi dòng ≤ 28 ký tự; KHÔNG thêm bớt chữ. Rồi `python dung.py "<dự án>" --tu phu-de --het`.
+Script tự: cắt viền đen (màn ngang trong khung dọc thì đặt giữa, nền mờ), nghe lời, BỎ tiếng ậm ừ, lần nói hỏng (cả giữa câu), chữ lặp ở chỗ nối, câu Whisper bịa (vd "Hẹn gặp lại các bạn trong những video tiếp theo" ở cuối file: nhiều chữ mà âm thanh gần như im); vùng Whisper ghi giờ dồn thì tự nghe lại riêng vùng đó, tách khoảng lặng thật trên 0,45 giây; chỉ bỏ, không đảo, không thêm lời; ghi `bo-cat.txt` (đã bỏ gì, vì sao); lập phụ đề, cảnh người nói, nhạc nhẹ; nghiệm thu; gắn nhận diện kênh.
+3. Còn ✘ thì sửa theo dòng ✘ (thường: chỉnh `doan.json` ở chỗ báo, chạy `dung.py "<dự án>" --tu master --het`), tối đa 3 vòng.
+4. Giao agent `video-cham-diem` chấm; báo người dùng đường dẫn, thời lượng, `bo-cat.txt` tóm tắt, phiếu chấm.
 
 ## Luật nghiệm thu (bắt buộc)
 
@@ -214,4 +231,4 @@ Báo người dùng: đường dẫn, thời lượng, kết quả nghiệm thu,
 
 Hai cổng chặn trước khi tốn thời gian: `tao_giong.py` chặn bản đọc có vế trung bình dưới 9 chữ (máy sẽ đọc rời), nhắc khi dưới 10; `lap_canh.py` đo tiêu đề bằng phông thật, chặn chữ sẽ tràn dòng trước khi bundle.
 
-Mỗi góp ý của người dùng hay lỗi tự sửa được thì đưa ngay vào skill: tài liệu trong `references/`, mã trong `scripts/` hoặc `engine/`, hoặc thêm một bước kiểm cho máy bắt được. Ghi lỗi vào `references/loi-da-gap.md`. Đóng gói và cài lại trong cùng lần đó.
+Mỗi góp ý của người dùng hay lỗi tự sửa được thì đưa ngay vào skill: tài liệu trong `references/`, mã trong `scripts/` hoặc `engine/`, hoặc thêm một bước kiểm cho máy bắt được. Ghi lỗi vào `references/loi-da-gap.md`. Chạy lại `scripts/hoi_quy.py` trong cùng lần đó.

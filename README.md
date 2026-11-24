@@ -11,14 +11,16 @@ Mở Claude Code trong thư mục làm việc của bạn (nơi để file video
 ```
 Edit video [tên file] cho tôi
 ```
-→ skill `ab-edit` tự tìm file, cắt lời thừa, chỉnh màu da, lọc ồn, thêm phụ đề và nhạc nền không lời, rồi agent `nguoi-dung-video` dựng và agent `nguoi-soat-video` soát độc lập. Lỗi thì tự sửa. Bạn nhận video kèm phiếu chấm.
+→ skill `video-ngan-nguoi-noi` tự tìm file, bỏ khoảng lặng, tiếng ậm ừ, lần nói hỏng, thêm phụ đề và nhạc nhẹ; agent `video-dung` dựng, agent `video-cham-diem` chấm độc lập thang 10. Lỗi thì tự sửa (tối đa 3 vòng). Bạn nhận video kèm phiếu chấm và danh sách đoạn đã bỏ.
 
 ```
 Dựng một video giới thiệu bản thân cho tôi theo cấu trúc BNI
 ```
-→ skill `video-ngan-nguoi-noi` hỏi bạn **một lượt** thông tin còn thiếu (tên, nghề, giúp ai, bằng chứng, khách lý tưởng, liên hệ), tự viết lời 5 phần BNI khoảng 30 giây, dùng ảnh/video của bạn nếu có (thả vào thư mục `anh-video-cua-toi`), không có thì làm chế độ không mặt với giọng đọc AI miễn phí. Xong cũng qua `nguoi-soat-video` và báo kèm phiếu chấm.
+→ skill `video-ngan-nguoi-noi` hỏi bạn **một lượt** thông tin còn thiếu (tên, nghề, giúp ai, bằng chứng, khách lý tưởng, liên hệ), tự viết lời 5 phần BNI khoảng 30 giây, dùng ảnh/video của bạn nếu có (thả vào thư mục `anh-video-cua-toi`), không có thì làm chế độ không mặt với giọng đọc AI miễn phí. Cảnh có sẵn là cảnh thật, không hoạt hình. Xong cũng qua `video-dung` dựng, `video-cham-diem` chấm và báo kèm phiếu chấm.
 
 Không cần duyệt từng bước. Claude không tự đăng video lên mạng xã hội.
+
+Muốn cắt livestream thành nhiều clip, làm biến thể quảng cáo hay dựng có duyệt từng bước thì nói rõ việc đó: Claude dùng skill nâng cao `ab-edit`.
 
 ## Cài đặt (một lần)
 
@@ -28,9 +30,10 @@ Không cần duyệt từng bước. Claude không tự đăng video lên mạng
    ```
    python cai_dat.py
    ```
-   Script kiểm và tự cài phần mềm còn thiếu (winget/pip), chép skill vào `%USERPROFILE%\.claude\skills` và agent vào `%USERPROFILE%\.claude\agents` (**không ghi đè** tệp bạn đã có), cuối cùng in **MÁY SẴN SÀNG**. Bị diệt virus hoặc thiếu quyền chặn thì script in đúng lệnh PowerShell để bạn tự dán.
-4. Mở lại Claude Code để nạp skill và agent mới.
-5. Tải **kho tài nguyên** (nhạc nền, cảnh trám, font, mẫu): [LINK KHO TÀI NGUYÊN DRIVE] — giải nén vào thư mục làm việc.
+   Script kiểm và tự cài phần mềm còn thiếu (winget/pip), chép skill vào `%USERPROFILE%\.claude\skills` và agent vào `%USERPROFILE%\.claude\agents` (**không ghi đè** tệp bạn đã có), rồi chạy bộ cài riêng của skill `video-ngan-nguoi-noi` (thư viện Python, Remotion, trình duyệt chụp web; lần đầu mất vài phút), cuối cùng in **MÁY SẴN SÀNG**. Bị diệt virus hoặc thiếu quyền chặn thì script in đúng lệnh PowerShell để bạn tự dán.
+   Muốn tạo sẵn thư mục làm việc (hồ sơ kênh mẫu với giọng AI miễn phí, thư mục `anh-video-cua-toi`, `du-an`): `python cai_dat.py --thu-muc "D:\VideoCuaToi"`.
+4. **Đóng hẳn Claude rồi mở lại** để nhận skill và agent mới (agent chỉ được nhận ở phiên mở sau khi cài).
+5. Tải **kho tài nguyên** (nhạc nền, cảnh trám, font, mẫu): [LINK KHO TÀI NGUYÊN DRIVE] (sẽ cập nhật) — giải nén vào thư mục làm việc.
 
 ## Phần mềm cần
 
@@ -50,8 +53,8 @@ Không cần duyệt từng bước. Claude không tự đăng video lên mạng
 
 | Skill | Làm gì |
 |---|---|
-| `ab-edit` | Edit video quay thô thành video hoàn chỉnh; cắt livestream thành nhiều video ngắn; tạo biến thể hook để chạy quảng cáo |
-| `video-ngan-nguoi-noi` | Video ngắn 9:16 người nói + mô hình đồ họa; video giới thiệu bản thân BNI 30 giây (có chế độ không mặt) |
+| `ab-edit` | Nâng cao: cắt livestream thành nhiều video ngắn; tạo biến thể hook để chạy quảng cáo; dựng video quảng cáo theo thương hiệu có duyệt từng bước |
+| `video-ngan-nguoi-noi` | "Edit video <tên file> cho tôi" (một lệnh, tự chấm); video giới thiệu bản thân BNI 30 giây (chế độ không mặt, giọng AI miễn phí, chặn cảnh hoạt hình); video ngắn 9:16 người nói + mô hình đồ họa |
 | `video-ngan-hyperframes` | Đường dự phòng dựng lớp hình bằng HyperFrames khi Remotion lỗi |
 | `anh-bia-video` | Ảnh bìa dọc 9:16, chữ ghép bằng code nên luôn đúng dấu tiếng Việt |
 | `kol-ban-quan-ao` | Video KOL AI bán quần áo giọng livestream, chèn cận chi tiết |
@@ -64,7 +67,7 @@ Không cần duyệt từng bước. Claude không tự đăng video lên mạng
 
 | Nhóm | Agent |
 |---|---|
-| Edit video thô và BNI | `nguoi-dung-video` (dựng), `nguoi-soat-video` (soát độc lập, chấm ĐẠT/SỬA LẠI kèm giây) |
+| Edit video thô và BNI | `video-dung` (dựng), `video-cham-diem` (chấm độc lập thang 10, ĐẠT/SỬA LẠI kèm giây; cũng chấm clip của `ab-edit`) |
 | Kiểm duyệt chung | `kiem-duyet-doc-lap` |
 | KOL bán quần áo | `kol-livestream-soat` |
 | KOL lookbook | `sku-lb-lenh`, `sku-lb-dung`, `sku-lb-soi-da-mat`, `sku-lb-soi-trang-phuc`, `sku-lb-cham-dung` |
@@ -82,4 +85,4 @@ Không cần duyệt từng bước. Claude không tự đăng video lên mạng
 
 ## Giấy phép
 
-MIT — xem [LICENSE](LICENSE). Mô hình nhận diện mặt YuNet đi kèm theo giấy phép riêng ở `scripts/mo-hinh/LICENSE-yunet.txt`.
+MIT — xem [LICENSE](LICENSE). Mô hình nhận diện mặt YuNet đi kèm theo giấy phép riêng ở [`.claude/skills/kol-lookbook/scripts/mo-hinh/LICENSE-yunet.txt`](.claude/skills/kol-lookbook/scripts/mo-hinh/LICENSE-yunet.txt) (bản giống hệt trong `.claude/skills/kol-review-nghi-duong/scripts/mo-hinh/`).

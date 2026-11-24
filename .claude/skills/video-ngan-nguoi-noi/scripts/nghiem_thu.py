@@ -43,6 +43,19 @@ def giong(x, y):
     return difflib.SequenceMatcher(None, x, y).ratio() >= 0.7
 
 
+def lap_noi(w, s, so_sanh=None):
+    """Số từ lặp ở chỗ nối hai đoạn (0 là không lặp). Lặp 2–3 từ chỉ tính khi nằm sát chỗ cắt (cuối đoạn trước, cho phép
+    thêm 1 từ lỡ), vì "...các bạn ra trường. | Các bạn có đang..." là câu bình thường (sửa 24/11/2026, lệnh edit video).
+    Từ 4 từ trùng trở lên thì dò xa 60 từ, bắt đoạn nói lại dài."""
+    g = so_sanh or giong
+    for k in range(min(6, len(w), len(s)), 1, -1):
+        tu_j = max(0, len(w) - 60) if k >= 4 else max(0, len(w) - k - 1)
+        for j in range(tu_j, len(w) - k + 1):
+            if all(g(w[j + n], s[n]) for n in range(k)):
+                return k
+    return 0
+
+
 def kiem_lap(src, edl):
     """Nghe riêng từng đoạn cắt, vì nghe cả bài thì Whisper gộp mất từ lặp."""
     chu = [tu(nghe(src, max(0, a - 0.05), b - a + 0.1)) for a, b in edl]
@@ -54,18 +67,10 @@ def kiem_lap(src, edl):
                     so += 1
                     kq(False, f"lặp trong đoạn {i} (giây {edl[i][0]}): {' '.join(w[j:j + k])}")
         if i + 1 < len(chu):
-            s = chu[i + 1]
-            # Lặp 2 từ chỉ tính khi sát chỗ cắt. Từ 4 từ trùng trở lên thì dò xa hơn, bắt đoạn nói lại dài.
-            for k in range(min(6, len(w), len(s)), 1, -1):
-                xa = 60 if k >= 4 else 8
-                for j in range(max(0, len(w) - xa), len(w) - k + 1):
-                    if all(giong(w[j + n], s[n]) for n in range(k)):
-                        so += 1
-                        kq(False, f"lặp giữa đoạn {i} và {i + 1} (giây {edl[i + 1][0]}): {' '.join(s[:k])}")
-                        break
-                else:
-                    continue
-                break
+            k = lap_noi(w, chu[i + 1])
+            if k:
+                so += 1
+                kq(False, f"lặp giữa đoạn {i} và {i + 1} (giây {edl[i + 1][0]}): {' '.join(chu[i + 1][:k])}")
     if not so:
         kq(True, f"không lặp từ ({len(edl)} đoạn cắt)")
 

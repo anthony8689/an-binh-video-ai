@@ -175,7 +175,7 @@ const Terminal: React.FC<{dai: number; lenh: string; chuChay?: string}> = ({dai,
 // Nhãn này che logo Flow ở góc clip (nghiem_thu.py kiểm VUNG_NHAN_GOC). Watermark của bước nhan-dien phủ đúng khung này, không bỏ nhãn.
 const NhanGoc: React.FC = () => (
   <div style={{position: 'absolute', right: 24, top: 1668, width: 300, height: 112, boxSizing: 'border-box', paddingTop: KENH.nhanCanhAI ? 16 : 34, textAlign: 'center', background: 'rgba(18,12,8,0.96)', borderRadius: 22, border: `3px solid ${CAM}`, fontFamily: FONT}}>
-    <div style={{fontFamily: fontTieuDe, fontWeight: 900, fontSize: 36, color: '#fff', lineHeight: 1.25}}>{KENH.ten}</div>
+    <div style={{fontFamily: fontTieuDe, fontWeight: 900, fontSize: KENH.ten.length <= 10 ? 36 : Math.max(20, Math.round(360 / KENH.ten.length)), color: '#fff', lineHeight: 1.25, whiteSpace: 'nowrap'}}>{KENH.ten}</div>
     {KENH.nhanCanhAI ? <div style={{fontWeight: 700, fontSize: 24, color: '#FFD9C2', marginTop: 4}}>{KENH.nhanCanhAI}</div> : null}
   </div>
 );
@@ -469,7 +469,7 @@ const DongCanhBao: React.FC<{mau: string; ten: string; phu: string; hien: boolea
 );
 
 const MAU_MUC: Record<string, string> = {do: DO, vang: VANG, xanh: XANH};
-const CanhBao: React.FC<{moc: number[]; tren: string; duoi: string; dong: [string, string, string][]}> = ({moc, tren, duoi, dong}) => {
+const CanhBao: React.FC<{moc: number[]; tren: string; duoi: string; dong: [string, string, string][]; linhVat?: boolean}> = ({moc, tren, duoi, dong, linhVat}) => {
   const t = useCurrentFrame() / 30;
   const so = moc.filter((x) => t >= x).length;
   return (
@@ -478,7 +478,7 @@ const CanhBao: React.FC<{moc: number[]; tren: string; duoi: string; dong: [strin
       <div style={{position: 'absolute', left: 60, right: 60, top: 370, display: 'flex', flexDirection: 'column', gap: 22}}>
         {dong.map(([m, a, b], i) => <DongCanhBao key={a} mau={MAU_MUC[m]} ten={a} phu={b} hien={i < so} moi={i === so - 1} />)}
       </div>
-      <LinhVatDung y={1250} co={0.95} mat={so >= dong.length ? 'dung' : 'x'} />
+      {linhVat === false ? null : <LinhVatDung y={1250} co={0.95} mat={so >= dong.length ? 'dung' : 'x'} />}
     </NenDao>
   );
 };
@@ -954,7 +954,7 @@ const VeCanh: React.FC<{c: CanhMoHinh}> = ({c}) => {
     case 'anh-goc': return <TroiNhe dai={dai}><AnhGoc moc={p.moc} tren={p.tren} duoi={p.duoi} anh={p.anh} catAnh={p.catAnh} o={p.o} /></TroiNhe>;
     case 'ba-lop': return <TroiNhe dai={dai}><CauNoi moc={p.moc} tren={p.tren} duoi={p.duoi} gach={p.gach} lop={p.lop} /></TroiNhe>;
     case 'tin-vui-buon': return <TroiNhe dai={dai}><TinVuiBuon moc={p.moc} vui={p.vui} buon={p.buon} /></TroiNhe>;
-    case 'canh-bao': return <TroiNhe dai={dai}><CanhBao moc={p.moc} tren={p.tren} duoi={p.duoi} dong={p.dong} /></TroiNhe>;
+    case 'canh-bao': return <TroiNhe dai={dai}><CanhBao moc={p.moc} tren={p.tren} duoi={p.duoi} dong={p.dong} linhVat={p.linhVat} /></TroiNhe>;
     case 'hai-phe': return <TroiNhe dai={dai}><HaiPhe moc={p.moc} tren={p.tren} duoi={p.duoi} phe={p.phe} /></TroiNhe>;
     case 'ket-phe': return <KetPhe tu={c.tu} hetTieng={p.hetTieng} cauHoi={p.cauHoi} phe={p.phe} />;
     case 'ket-comment': return <Ket tu={c.tu} hetTieng={p.hetTieng} tuKhoa={p.tuKhoa} nhan={p.nhan} tieuDe={p.tieuDe} clip={p.clip} />;

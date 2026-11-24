@@ -1,22 +1,26 @@
 ---
 name: ab-edit
-description: Skill AB Edit (Windows) — edit video thô thành video hoàn chỉnh từ file quay người nói thật (cắt lời thừa, chỉnh màu da, lọc ồn, phụ đề, cảnh trám, nhạc nền không lời, soát chính sách quảng cáo), cắt livestream dài thành nhiều video ngắn 45–180 giây trọn ý, và tạo 3–5 biến thể khác hook từ 1 video Final để test quảng cáo. Xuất 9:16 / 4:5 / 1:1 / 16:9, tự gọi agent nguoi-dung-video dựng rồi agent nguoi-soat-video soát độc lập, tự sửa đến khi ĐẠT rồi báo kèm phiếu chấm. Dùng ngay khi người dùng nói "Edit video [tên file] cho tôi", "edit video", "dựng video", "dựng video thô", "cắt video này", "dựng video ads", "cắt livestream", "cắt clip từ live", "làm biến thể", "xào nấu thêm video", "đổi hook", hoặc thả file quay vào 02-source-tho và nhờ làm video — kể cả khi không nói chữ "skill". Không dùng cho video giới thiệu bản thân BNI hay video kênh người nói kịch bản sẵn (dùng video-ngan-nguoi-noi).
+description: Skill AB Edit nâng cao (Windows), cho người muốn tự điều khiển từng khâu: dựng video quảng cáo hoàn chỉnh từ file quay người nói thật có duyệt từng bước (bảng GIỮ/BỎ, kịch bản hình 6 phần, chỉnh màu da, lọc ồn, khối chữ theo thương hiệu, cảnh trám, soát chính sách quảng cáo), cắt livestream dài thành nhiều video ngắn 45–180 giây trọn ý, và tạo 3–5 biến thể khác hook từ 1 video Final để test quảng cáo. Xuất 9:16 / 4:5 / 1:1 / 16:9, chấm độc lập bằng agent video-cham-diem. Dùng khi người dùng nói "cắt livestream", "cắt clip từ live", "làm biến thể", "xào nấu thêm video", "đổi hook", "dựng video ads", "dựng video quảng cáo có duyệt từng bước", "edit video theo thương hiệu, cho tôi duyệt từng bước", hoặc thả file vào 02-source-tho của video-studio. KHÔNG dùng cho câu ngắn "Edit video <tên file> cho tôi" hay video giới thiệu bản thân BNI: hai câu đó thuộc skill video-ngan-nguoi-noi.
 ---
 
 # Skill AB Edit (`ab-edit` · v3 · Windows)
 
-Skill dựng và edit video của An Bình AI. Ba chế độ: A dựng video hoàn chỉnh từ file quay thô, B cắt livestream thành nhiều video ngắn, C tạo biến thể từ 1 video Final.
+Skill dựng và edit video của An Bình AI. Ba chế độ nâng cao: A dựng video quảng cáo hoàn chỉnh từ file quay thô (có duyệt từng bước khi người dùng muốn), B cắt livestream thành nhiều video ngắn, C tạo biến thể từ 1 video Final.
 
-## Câu lệnh ngắn: "Edit video [tên file] cho tôi" (chế độ tự động, mặc định)
+## Phân việc với skill `video-ngan-nguoi-noi`
 
-Người dùng chỉ cần nói một câu như vậy. KHÔNG hỏi duyệt từng bước. Làm trọn theo trình tự:
+Câu ngắn "Edit video <tên file> cho tôi" (một file quay, ra video dọc có phụ đề, nhạc nhẹ) và video giới thiệu bản thân BNI thuộc skill `video-ngan-nguoi-noi` (lệnh `edit.py`, `bni.py`, agent `video-dung` dựng, `video-cham-diem` chấm). Skill này chỉ nhận việc nâng cao: cắt livestream (B), làm biến thể quảng cáo (C), dựng video quảng cáo theo thương hiệu có duyệt từng bước (A).
+
+## Chế độ tự động (khi người dùng giao việc nâng cao mà không đòi duyệt)
+
+KHÔNG hỏi duyệt từng bước. Làm trọn theo trình tự:
 
 1. **Tìm file**: tìm `<tên file>` trong thư mục đang mở, `video-studio/02-source-tho/` và các thư mục con (khớp gần đúng tên, bỏ dấu). Không thấy thì mới hỏi đúng một câu: file nằm ở đâu.
 2. **Đoán mặc định, không hỏi**: có người nói quay thật → chế độ A; file dài hơn 20 phút → chế độ B. Khổ hình theo file gốc (quay dọc → 9:16, ngang → 16:9). Thương hiệu = `config.json › brand_mac_dinh` (hoặc `brands/<tên>.json` duy nhất mà người dùng đã tạo). Phụ đề karaoke cho video ngắn. Nhạc nền không lời, thấp hơn giọng 22 dB.
-3. **Gọi agent `nguoi-dung-video`** (Agent tool, subagent_type `nguoi-dung-video`) giao: đường dẫn file, chế độ, khổ, thương hiệu, thư mục dự án. Agent này dựng theo đúng skill này cho tới khi `scripts/nghiem_thu.py` báo ĐẠT.
-4. **Gọi agent `nguoi-soat-video`** giao CHỈ: đường dẫn video thành phẩm, file gốc, `loi.txt`/phụ đề nếu có. Không kể cho người soát là mình đã làm gì. Agent trả phiếu chấm ĐẠT hoặc SỬA LẠI kèm giây.
-5. **SỬA LẠI** → gửi nguyên phiếu lỗi cho `nguoi-dung-video` sửa, rồi gọi lại `nguoi-soat-video` (một agent mới, không dùng lại phiên cũ). Tối đa 3 vòng. Sau 3 vòng vẫn lỗi thì dừng, báo rõ lỗi gì, đã thử gì.
-6. **Báo người dùng** (ngắn, lời thường): đường dẫn video, thời lượng, những gì đã cắt/sửa, **phiếu chấm cuối của `nguoi-soat-video`** (dán nguyên bảng), phần máy chưa kiểm được (chưa nghe bằng tai), những con số trên màn hình cần người dùng xác nhận trước khi đăng.
+3. **Tự dựng** theo đúng skill này (chế độ A/B/C bên dưới) cho tới khi `scripts/nghiem_thu.py` báo ĐẠT. Việc dài (nhiều clip livestream) thì có thể giao một agent con làm theo skill này, kèm đường dẫn file, chế độ, khổ, thương hiệu, thư mục dự án.
+4. **Gọi agent `video-cham-diem`** giao CHỈ: đường dẫn video thành phẩm, file gốc, `loi.txt`/phụ đề nếu có. Không kể cho người soát là mình đã làm gì. Agent trả phiếu chấm ĐẠT hoặc SỬA LẠI kèm giây.
+5. **SỬA LẠI** → sửa đúng từng lỗi trong phiếu, xuất bản mới `-v2`, `-v3` (không ghi đè bản cũ), rồi gọi lại `video-cham-diem` (một agent mới, không dùng lại phiên cũ). Tối đa 3 vòng. Sau 3 vòng vẫn lỗi thì dừng, báo rõ lỗi gì, đã thử gì.
+6. **Báo người dùng** (ngắn, lời thường): đường dẫn video, thời lượng, những gì đã cắt/sửa, **phiếu chấm cuối của `video-cham-diem`** (dán nguyên bảng), phần máy chưa kiểm được (chưa nghe bằng tai), những con số trên màn hình cần người dùng xác nhận trước khi đăng.
 
 Không hỏi giữa chừng những việc tự quyết được (chọn lần nói, chọn nhạc, chọn cảnh trám, cỡ chữ). Ở chế độ tự động, các "cửa duyệt" của bản thủ công bên dưới được thay bằng: tự lập bảng (GIỮ/BỎ, số – nguồn, tờ ảnh tĩnh), tự soát theo bảng đó, và đính bảng vào báo cáo cuối để người dùng xem lại. Số liệu không có nguồn thì KHÔNG đưa lên màn hình (bỏ đi), không bịa.
 
@@ -48,7 +52,7 @@ Python: đặt `PYTHONUTF8=1`, chạy script trong `scripts/`.
   2. **Bảng GIỮ / BỎ**: sau `edl_tool propose`, lập bảng câu GIỮ / BỎ (lý do: lặng, nói lại, nói hỏng). Chế độ tự động: tự quyết theo bảng, đính bảng vào báo cáo. Chế độ thủ công: người dùng duyệt chữ trước khi ráp.
   3. **Mọi con số lên màn hình phải có nguồn** (giá, %, ngày, số lượng, số năm, chứng nhận…): lấy từ lời nói trong file, kịch bản, `brand.json` — không viết theo trí nhớ. Không có nguồn thì bỏ.
   4. **Tờ ảnh tĩnh trước khi render**: xuất 1 khung đại diện mỗi cảnh, ghép thành 1 tờ (đánh số cảnh + giây), tự soát (chữ đè mặt, chữ tràn, sai dấu) rồi mới render cả video. Sửa 1 cảnh thì chỉ xuất lại ảnh cảnh đó.
-  5. **Chỉ bàn giao khi `scripts/nghiem_thu.py` báo ĐẠT và `nguoi-soat-video` chấm ĐẠT.** Còn ✘ thì tự sửa, xuất lại, chạy lại; không hỏi, không gửi bản lỗi. Không hạ ngưỡng để cho qua.
+  5. **Chỉ bàn giao khi `scripts/nghiem_thu.py` báo ĐẠT và `video-cham-diem` chấm ĐẠT.** Còn ✘ thì tự sửa, xuất lại, chạy lại; không hỏi, không gửi bản lỗi. Không hạ ngưỡng để cho qua.
 - Font, nhạc, cảnh trám phải có nguồn hợp lệ; không tải từ nguồn không rõ. Dữ liệu khách chỉ dùng trong dự án, không đưa vào skill.
 - Báo tiến độ dạng "Bước x – đang làm gì – kết quả". Người dùng không biết code: giải thích bằng lời thường, không dán lệnh dài.
 
@@ -66,13 +70,13 @@ Video **không quay, toàn đồ họa + giọng đọc** → dùng skill `video
 6. Cảnh trám đúng từ khoá, đồ hoạ HTML (`scripts/do-hoa/`), khối chữ (`scripts/titles/template.html` qua `make_titles.py`) hoặc phụ đề karaoke theo `brand.phu_de`. Phụ đề karaoke/đồ họa động: dùng engine Remotion của skill `video-ngan-nguoi-noi` (`engine/`) hoặc `video-ngan-hyperframes`; máy chưa có Remotion thì đốt phụ đề bằng FFmpeg (ASS) — đặt chữ tránh vùng mặt (`tim_mat.py`).
 7. Ráp timeline + nhạc nền → tờ ảnh tĩnh từng cảnh (luật 4) → xuất → **`tu_kiem.py xuat <video> --brand <b> --moc <giây từng cảnh>`**
    (khung đen/đứng/cháy trắng, LUFS theo `brand.am_thanh.giong_lufs`, đỉnh, lặng chết, tờ soát khung → `<video>-soat/`). Còn ✘ thì sửa, xuất lại, kiểm lại
-   đến khi sạch, rồi **`nghiem_thu.py` (luật 5)**. **Tự mở tờ soát xem bằng mắt** (chữ đè mặt, chữ sai/tràn, bố cục), rồi giao `nguoi-soat-video`.
+   đến khi sạch, rồi **`nghiem_thu.py` (luật 5)**. **Tự mở tờ soát xem bằng mắt** (chữ đè mặt, chữ sai/tràn, bố cục), rồi giao `video-cham-diem`.
 
 ### B. Livestream → nhiều video ngắn (`--che-do livestream`)
 1. `tu_kiem.py nhan` file live (live hay thiếu keyframe/VFR → `--sua`) → Whisper toàn bộ buổi live → bản lời có giây.
 2. Tìm đoạn **trọn ý** dài `brand.livestream.do_dai_giay` (mặc định 45–180s): câu mở đủ hút trong 3s đầu, có nội dung, có kết; không cắt giữa câu.
 3. Chấm điểm (hook · giá trị · trọn ý · rủi ro VPCS) và gắn trụ nội dung (`brand.livestream.tru_noi_dung`) → bảng đề xuất. Chế độ tự động: dựng 3 đoạn điểm cao nhất, đính bảng cho người dùng chọn thêm.
-4. Tờ ảnh tĩnh mỗi clip (khung hook + 1 khung giữa). Dựng hàng loạt: cắt lặng, mặt vào giữa khung dọc, phụ đề karaoke, tiêu đề hook 3s đầu, CTA theo `brand.cta`, kèm caption + hashtag. Mỗi clip chạy `tu_kiem.py xuat` (mã thoát 1 = có lỗi ✘) và qua `nguoi-soat-video`.
+4. Tờ ảnh tĩnh mỗi clip (khung hook + 1 khung giữa). Dựng hàng loạt: cắt lặng, mặt vào giữa khung dọc, phụ đề karaoke, tiêu đề hook 3s đầu, CTA theo `brand.cta`, kèm caption + hashtag. Mỗi clip chạy `tu_kiem.py xuat` (mã thoát 1 = có lỗi ✘) và qua `video-cham-diem`.
 
 ### C. Biến thể từ 1 video Final (`--che-do bien-the`)
 1. Giữ thân bài; đề xuất 3–5 hook (câu khác trong source / lần nói chưa dùng / hook chữ + cảnh mở khác) và bộ cảnh trám khác.
@@ -95,4 +99,4 @@ Video **không quay, toàn đồ họa + giọng đọc** → dùng skill `video
 - `config.json` · `brands/` (`_mau` mẫu trống, `an-binh-ai` ví dụ đã điền, `thu-mau-xanh` thử đổi màu)
 - `scripts/` — `chung.py` (đường dẫn, FFmpeg, luật an toàn), `kiem_tra_may.py`, `tao_du_an.py`, `vpcs_check.py`, `whisper_vi.py`, `edl_tool.py`, `master_nguoi_noi.py`, `tim_mat.py` (MediaPipe + `models/`), `make_titles.py`, `tu_kiem.py` (kiểm file nhận + tự kiểm sau xuất), `nghiem_thu.py` (cổng cuối: lặp từ, đủ lời, khoảng lặng, màu, độ nét, logo góc), `phan_tich_nhac.py`, `kho_tai_nguyen.py`, `titles/template.html`, `do-hoa/` (thẻ feedback, thẻ tự kiểm tra, khung 3 sản phẩm), `vendor/quay-html.mjs` (quay trang HTML thành video, Chrome headless).
 - `references/` — chuẩn dựng video ads, VPCS.
-- Agent đi kèm (trong `.claude/agents/`): `nguoi-dung-video`, `nguoi-soat-video`.
+- Agent chấm đi kèm (trong `.claude/agents/`): `video-cham-diem` (chấm độc lập, phiếu ĐẠT/SỬA LẠI kèm giây).

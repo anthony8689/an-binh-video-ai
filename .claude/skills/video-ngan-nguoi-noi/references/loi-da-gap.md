@@ -144,3 +144,18 @@ Câu lệnh "Dựng một video giới thiệu bản thân cho tôi theo cấu t
 - Giọng miễn phí (edge-tts, Microsoft) lỗi `NoAudioReceived` theo đợt, có lúc 10 lần liền → thử lại tới 20 lần; lần hỏng để lại file `ca-bai.mp3` rỗng làm lần sau tưởng đã có giọng → ghi file tạm rồi mới đổi tên, `bni.py` chỉ dùng lại giọng > 20 KB và khi lời đọc không đổi.
 - Luật 9 đọc nhầm mã cảnh `ket-comment` + clip `TOI3` thành "comment TOI" → `kiem_ket_du_an` chỉ đọc chữ hiện trên hình (bỏ `loai`, `clip`, `ten`...). Hồi quy: mục "luật 9: mã cảnh ket-comment + TOI3".
 - Chưa thử thật: học viên tự quay đọc lời làm giọng (`giongTuQuay`) — chỉ mới viết code, chưa có file quay mẫu.
+
+## Câu lệnh "Edit video <file>" (24/11/2026, thử với file quay 91 giây)
+- Skill edit cũ (aduca-video-studio) trỏ tới thư mục studio không còn trên máy và có 4 cửa chờ duyệt → làm `scripts/edit.py` trong skill này, một lệnh, tự chấm.
+- File quay màn ngang nằm trong khung dọc có viền đen → `edit.py` cắt viền (cropdetect), đặt giữa, nền mờ.
+- Whisper bịa câu cuối "Hẹn gặp lại các bạn trong những video tiếp theo" (10 chữ trong 0,48 giây) và một câu 17 chữ trong 1,8 giây → bỏ câu từ 4 chữ nhanh hơn 7 chữ/giây.
+- Đệm hai lần (edit.py đệm + lap_master.py đệm 0,06/0,12) làm khoảng lặng 0,74 giây → edit.py không đệm; tách đoạn ở khoảng lặng thật (silencedetect -32 dB) trên 0,45 giây.
+- Lần đầu thử kéo điểm kết tới khoảng lặng kế tiếp → các đoạn chồng nhau, mất 101 từ → bỏ cách đó.
+- Nói lại giữa câu trong cùng một đảo tiếng ("…nhận lương hàng | Các bạn sẽ được nhận lương hàng tháng…") → bỏ lần trước khi chuỗi ≥ 4 chữ lặp lại trong vòng 12 chữ.
+- `nghiem_thu.py` bắt nhầm "lặp giữa đoạn" với câu bình thường ("…các bạn ra trường. | Các bạn có đang…") vì 2 chữ trùng trong 8 chữ cuối là tính → 2–3 chữ chỉ tính khi sát chỗ cắt (`lap_noi`); hồi quy có cả ca lặp thật và ca câu bình thường.
+- Tiêu đề tự lấy 6 chữ đầu bị cắt ngang ý ("BẠN ĐANG LO / LẮNG VỀ TƯƠNG") → người giao việc đặt `--tieu-de` từ ý chính trong lời.
+- Agent mới chép vào ~/.claude/agents chỉ nhận ở phiên Claude mở sau đó → `cai_dat.py` nhắc mở lại Claude.
+- File quay gần như không có tiếng (mẫu quay HeyGen, -52 dB): edit.py chỉ nghe được 1 đảo; người giao việc phải báo người dùng file không có lời.
+- Người chấm bắt lỗi CHẶN ở bản 1: bộ lọc "câu bịa theo tốc độ" bỏ nhầm nửa câu thật về lương. Gốc: nghe cả file, Whisper chép lặp đầu câu trước vào đoạn sau với giờ dồn giả và ghi "700 .000." thay cho "700 đến 1.200 euro". Sửa: câu nhanh bất thường thì đo tiếng thật (không có tiếng mới là bịa, bỏ); có tiếng thì NGHE LẠI riêng vùng đó (không nối ngữ cảnh) và thay lời. Tránh "dò nói lại" bỏ nhầm câu thật.
+- Phụ đề Whisper sai chính tả ("đất đỏ") và ngắt dòng cắt đôi từ ghép → máy ngắt theo dấu câu rồi chia đôi ở chữ nối; thêm bước người dựng soát `loi.txt` trước khi xuất (không thêm bớt chữ).
+- Hình người nói nhỏ (màn ngang 720x404 trong khung dọc) → dải giữa phóng 1,4 lần trên nền mờ.

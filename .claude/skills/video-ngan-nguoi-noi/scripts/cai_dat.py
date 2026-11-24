@@ -1,8 +1,12 @@
 """Cài bộ công cụ trên máy mới, chạy một lần.
   python cai_dat.py [thư mục kênh]
-Kiểm FFmpeg, Node, thư viện Python; chép engine vào ~/.video-ngan/engine rồi npm install; tạo ho-so-kenh.json mẫu ở thư mục kênh.
+Kiểm FFmpeg, Node, thư viện Python. THIẾU GÌ TỰ CÀI (winget, pip, npm) rồi kiểm lại; chép engine vào ~/.video-ngan/engine;
+tạo ho-so-kenh.json mẫu (giọng AI miễn phí) và thư mục anh-video-cua-toi ở thư mục kênh.
+Chỉ khi bị chặn (diệt virus như Bkav, thiếu quyền quản trị, không có winget) mới in đúng lệnh PowerShell để người dùng
+tự dán (24/11/2026, người dẫn yêu cầu: kiểm xong thiếu gì Claude cài luôn).
 Chỉ dùng thư viện chuẩn của Python để chạy được cả khi máy chưa có gì."""
 import importlib.util
+import os
 import shutil
 import subprocess
 import sys
@@ -11,15 +15,62 @@ from pathlib import Path
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 GOC = Path(__file__).resolve().parent.parent
 ENGINE = Path.home() / ".video-ngan" / "engine"
-THU_VIEN = {"faster_whisper": "faster-whisper", "cv2": "opencv-python", "numpy": "numpy", "google.auth": "google-auth", "requests": "requests", "playwright": "playwright"}
-thieu = []
+THU_VIEN = {"faster_whisper": "faster-whisper", "cv2": "opencv-python", "numpy": "numpy", "google.auth": "google-auth",
+            "requests": "requests", "playwright": "playwright", "edge_tts": "edge-tts"}
+WINGET = {"ffmpeg": "Gyan.FFmpeg", "ffprobe": "Gyan.FFmpeg", "node": "OpenJS.NodeJS.LTS", "npm": "OpenJS.NodeJS.LTS"}
+DA_CAI_SAN = -1978335189  # mã winget: gói đã có
+thieu, tu_dan = [], []
+
+
+def lam_moi_path():
+    """winget cài xong thì PATH của tiến trình này chưa có thư mục mới: đọc lại PATH của máy và người dùng."""
+    if sys.platform != "win32":
+        return
+    import winreg
+    phan = []
+    for goc, khoa in ((winreg.HKEY_LOCAL_MACHINE, r"SYSTEM\CurrentControlSet\Control\Session Manager\Environment"),
+                      (winreg.HKEY_CURRENT_USER, "Environment")):
+        try:
+            with winreg.OpenKey(goc, khoa) as k:
+                phan.append(os.path.expandvars(winreg.QueryValueEx(k, "Path")[0]))
+        except OSError:
+            pass
+    phan.append(str(Path(os.environ.get("LOCALAPPDATA", "")) / "Microsoft" / "WinGet" / "Links"))
+    os.environ["PATH"] = ";".join(phan + [os.environ.get("PATH", "")])
+
+
+def cai_winget(goi):
+    lenh = f"winget install -e --id {goi} --accept-package-agreements --accept-source-agreements"
+    if not shutil.which("winget"):
+        tu_dan.append("# Máy chưa có winget: cài 'App Installer' trong Microsoft Store, rồi:\n    " + lenh)
+        return False
+    print(f"  → tự cài {goi} bằng winget (1–3 phút)...")
+    r = subprocess.run(["winget", "install", "-e", "--id", goi, "--accept-package-agreements", "--accept-source-agreements", "--silent"])
+    lam_moi_path()
+    if r.returncode not in (0, DA_CAI_SAN):
+        tu_dan.append(lenh)
+        return False
+    return True
 
 
 def co(lenh):
     tim = shutil.which(lenh)
-    print(("✔ " if tim else "✘ ") + lenh + (f": {tim}" if tim else " chưa có"))
+    if not tim and sys.platform == "win32" and lenh in WINGET:
+        print(f"✘ {lenh} chưa có")
+        if cai_winget(WINGET[lenh]):
+            tim = shutil.which(lenh)
+    print(("✔ " if tim else "✘ ") + lenh + (f": {tim}" if tim else " vẫn chưa có"))
     if not tim:
         thieu.append(lenh)
+
+
+def dung_cho_dan(lenh_ds):
+    print("\n✘ Máy chặn cài tự động (diệt virus như Bkav, hoặc thiếu quyền). Bấm Start, gõ PowerShell, chuột phải chọn "
+          "'Run as administrator', dán lần lượt từng lệnh dưới đây:")
+    for l in dict.fromkeys(lenh_ds):
+        print("    " + l)
+    print("Xong thì đóng hẳn Claude, mở lại, rồi nói với Claude: 'cài tiếp'.")
+    sys.exit(1)
 
 
 co("ffmpeg")
@@ -27,8 +78,7 @@ co("ffprobe")
 co("node")
 co("npm")
 if thieu:
-    print("\nCài các công cụ còn thiếu rồi chạy lại:\n  FFmpeg: https://ffmpeg.org/download.html (thêm vào PATH)\n  Node.js bản LTS: https://nodejs.org")
-    sys.exit(1)
+    dung_cho_dan(tu_dan or [f"winget install -e --id {WINGET[x]}" for x in thieu if x in WINGET])
 
 can_pip = [p for m, p in THU_VIEN.items() if importlib.util.find_spec(m) is None]
 co_gpu = shutil.which("nvidia-smi") is not None and subprocess.run(["nvidia-smi", "-L"], capture_output=True).returncode == 0
@@ -36,17 +86,34 @@ if co_gpu and importlib.util.find_spec("nvidia") is None:
     can_pip += ["nvidia-cublas-cu12", "nvidia-cudnn-cu12"]
 print("✔ có GPU NVIDIA" if co_gpu else "⚠ không thấy GPU NVIDIA, phần nghe lời sẽ chạy CPU, chậm hơn nhiều")
 if can_pip:
-    print("Cài thư viện Python:", ", ".join(can_pip))
-    subprocess.run([sys.executable, "-m", "pip", "install", *can_pip], check=True)
-subprocess.run([sys.executable, "-m", "playwright", "install", "chromium"], check=True)
+    print("Tự cài thư viện Python:", ", ".join(can_pip))
+    if subprocess.run([sys.executable, "-m", "pip", "install", *can_pip]).returncode and \
+            subprocess.run([sys.executable, "-m", "pip", "install", "--user", *can_pip]).returncode:
+        dung_cho_dan([f'& "{sys.executable}" -m pip install --user ' + " ".join(can_pip)])
+    importlib.invalidate_caches()
+    con = [p for m, p in THU_VIEN.items() if importlib.util.find_spec(m) is None]
+    print("✔ đã cài xong thư viện Python" if not con else f"⚠ cài xong nhưng chưa nhận: {', '.join(con)} (mở lại Claude rồi chạy lại)")
+if subprocess.run([sys.executable, "-m", "playwright", "install", "chromium"]).returncode:
+    print(f'⚠ Chưa tải được trình duyệt Playwright (chỉ cần khi chụp trang web). Tự dán sau:  & "{sys.executable}" -m playwright install chromium')
 print("✔ thư viện Python đủ. Python dùng cho mọi lệnh sau:", sys.executable)
 
 ENGINE.mkdir(parents=True, exist_ok=True)
 shutil.copytree(GOC / "engine", ENGINE, dirs_exist_ok=True)
 if not (ENGINE / "node_modules").exists():
-    print("Cài Remotion (vài phút)...")
-    subprocess.run(["npm.cmd" if sys.platform == "win32" else "npm", "install", "--no-audit", "--no-fund"], cwd=ENGINE, check=True)
+    print("Tự cài Remotion (vài phút)...")
+    if subprocess.run(["npm.cmd" if sys.platform == "win32" else "npm", "install", "--no-audit", "--no-fund"], cwd=ENGINE).returncode:
+        dung_cho_dan([f'cd "{ENGINE}"; npm install --no-audit --no-fund'])
 print("✔ engine:", ENGINE)
+
+# Agent đi kèm gói (24/11/2026): video-dung (dựng) và video-cham-diem (chấm độc lập), chép vào ~/.claude/agents
+AG = Path.home() / ".claude" / "agents"
+AG.mkdir(parents=True, exist_ok=True)
+for f in sorted((GOC / "agents").glob("*.md")):
+    if (AG / f.name).exists():
+        print("✔ agent đã có (giữ nguyên, không ghi đè):", f.stem)
+        continue
+    shutil.copy2(f, AG / f.name)
+    print("✔ agent:", f.stem)
 
 if len(sys.argv) > 1:
     kenh = Path(sys.argv[1])
@@ -56,7 +123,8 @@ if len(sys.argv) > 1:
         print("✔ đã có", f, "(giữ nguyên)")
     else:
         shutil.copy2(GOC / "references" / "ho-so-kenh.mau.json", f)
-        print("✔ tạo", f, "- mở file này điền thông tin kênh")
-    (kenh / "kho-canh").mkdir(exist_ok=True)
-    (kenh / "du-an").mkdir(exist_ok=True)
+        print("✔ tạo", f, "(giọng AI miễn phí; có giọng nhân bản thì điền giongAI sau)")
+    for x in ("kho-canh", "du-an", "anh-video-cua-toi"):
+        (kenh / x).mkdir(exist_ok=True)
+print("\n⚠ Agent mới (video-dung, video-cham-diem) chỉ nhận ở phiên Claude mở SAU khi cài: đóng hẳn Claude, mở lại.")
 print("\nCài xong. Whisper tải mô hình large-v3 (khoảng 3 GB) ở lần chạy đầu. GPU NVIDIA giúp nhanh hơn nhiều, không có vẫn chạy được.")

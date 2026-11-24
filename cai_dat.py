@@ -3,6 +3,7 @@
 Cách chạy (PowerShell, trong thư mục kho vừa tải về):
     python cai_dat.py            kiểm + tự cài phần mềm còn thiếu + chép skill/agent
     python cai_dat.py --chi-kiem chỉ kiểm, không cài gì (vẫn chép skill/agent nếu chưa có)
+    python cai_dat.py --thu-muc "D:/VideoCuaToi"   thêm: tạo sẵn thư mục làm việc (hồ sơ kênh mẫu, anh-video-cua-toi, du-an)
 
 Việc script làm:
 1. Kiểm Python 3.10+, FFmpeg, Node.js, Git, yt-dlp, faster-whisper, edge-tts.
@@ -10,7 +11,10 @@ Việc script làm:
    Bị chặn (diệt virus, thiếu quyền, không có winget) thì in đúng lệnh PowerShell để tự dán.
 2. Chép skill vào %USERPROFILE%\\.claude\\skills và agent vào %USERPROFILE%\\.claude\\agents.
    KHÔNG ghi đè tệp đã có: tệp trùng tên thì bỏ qua và báo lại.
-3. Đủ hết thì in "MÁY SẴN SÀNG".
+3. Chạy bộ cài riêng của skill video-ngan-nguoi-noi (scripts/cai_dat.py: thư viện Python, Remotion, trình duyệt
+   Playwright; agent đã có thì không ghi đè). Phần mềm chung (FFmpeg, Node, Whisper, edge-tts) đã lo ở bước 1 nên
+   bộ cài skill chỉ kiểm lại, không cài trùng.
+4. Đủ hết thì in "MÁY SẴN SÀNG".
 """
 import argparse
 import importlib.util
@@ -174,9 +178,31 @@ def chep(nguon, dich, ten_nhom):
     return da_chep, trung
 
 
+def cai_skill_video(thu_muc):
+    """Bộ cài riêng của video-ngan-nguoi-noi (bản trong kho, đã test). Trả True khi chạy đạt."""
+    f = NGUON_SKILL / "video-ngan-nguoi-noi" / "scripts" / "cai_dat.py"
+    if not f.is_file():
+        print(f"  ✘ Không thấy {f} — tải lại kho cho đủ.")
+        return False
+    lenh = [sys.executable, "-X", "utf8", str(f)] + ([str(Path(thu_muc).resolve())] if thu_muc else [])
+    env = dict(os.environ, PYTHONUTF8="1", USERPROFILE=str(nha()))
+    sys.stdout.flush()
+    try:
+        ma = subprocess.run(lenh, env=env, cwd=str(f.parent), timeout=1800).returncode
+    except subprocess.TimeoutExpired:
+        print("  ✘ Bộ cài skill quá 30 phút (mạng chậm?). Chạy lại: python cai_dat.py")
+        return False
+    if ma:
+        print("  ✘ Bộ cài skill video-ngan-nguoi-noi dừng: làm theo các lệnh PowerShell nó vừa in ở trên rồi chạy lại.")
+        return False
+    print("  ✔ bộ cài skill video-ngan-nguoi-noi chạy xong")
+    return True
+
+
 def main():
     ap = argparse.ArgumentParser(description="Cài bộ làm video AI của An Bình AI")
     ap.add_argument("--chi-kiem", action="store_true", help="chỉ kiểm, không tự cài phần mềm")
+    ap.add_argument("--thu-muc", help="thư mục làm việc để tạo sẵn hồ sơ kênh mẫu và thư mục anh-video-cua-toi")
     a = ap.parse_args()
 
     print("=== BỘ LÀM VIDEO AI — AN BÌNH AI ===")
@@ -203,6 +229,16 @@ def main():
             print(f"      {k}  ({n} tệp trùng)")
         print("    Muốn dùng bản mới của kho: đổi tên/cất thư mục cũ rồi chạy lại cai_dat.py.")
 
+    print("\nBước 3: bộ cài riêng của skill video-ngan-nguoi-noi (Edit video, BNI)")
+    if a.chi_kiem:
+        print("  … bỏ qua vì đang ở chế độ --chi-kiem")
+        skill_ok = True
+    elif thieu:
+        print("  … chưa chạy vì còn thiếu phần mềm ở bước 1")
+        skill_ok = True
+    else:
+        skill_ok = cai_skill_video(a.thu_muc)
+
     print()
     if thieu:
         print("Còn thiếu phần mềm. Mở PowerShell (chuột phải → Run as administrator nếu bị chặn quyền), dán từng lệnh:")
@@ -211,6 +247,10 @@ def main():
         print("Dán xong đóng PowerShell, mở lại rồi chạy: python cai_dat.py")
         print("\nMÁY CHƯA SẴN SÀNG")
         sys.exit(1)
+    if not skill_ok:
+        print("\nMÁY CHƯA SẴN SÀNG")
+        sys.exit(1)
+    print("QUAN TRỌNG: đóng hẳn Claude rồi mở lại để nhận skill và agent mới (video-dung, video-cham-diem).")
     print("Mở Claude Code trong thư mục làm việc của bạn và gõ thử:")
     print('    Edit video <tên file> cho tôi')
     print('    Dựng một video giới thiệu bản thân cho tôi theo cấu trúc BNI')

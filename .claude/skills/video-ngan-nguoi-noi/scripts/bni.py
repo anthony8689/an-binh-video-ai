@@ -33,12 +33,12 @@ ANH = {".jpg", ".jpeg", ".png", ".webp"}
 VIDEO = {".mp4", ".mov", ".m4v", ".mkv", ".webm"}
 AM = {".m4a", ".mp3", ".wav", ".aac"}
 # Cảnh thật, không người, hợp người làm nghề. Thứ tự ưu tiên; mã nào không có trên máy thì bỏ qua.
-# Mặc định là cảnh đời thường Việt Nam, hợp mọi nghề; cảnh công nghệ viễn tưởng (N031 bảng số liệu, N100 thành phố neon)
+# Mặc định là nền màu dịu (K055 sóng pastel, K049 sóng trắng) và cảnh đời thường đẹp (K082 sân thượng hoàng hôn), hợp mọi nghề; cảnh công nghệ viễn tưởng (N031 bảng số liệu, N100 thành phố neon)
 # chỉ hợp người làm công nghệ, khi đó ghi "canh" trong bni.json. bni.json "canh": {"mo", "bang", "ket"} ghi đè từng vai.
 UU_TIEN = {
-    "mo": ["K082", "K076", "K075", "K080"],
-    "bang": ["K076", "K080", "K068", "N065"],
-    "ket": ["K079", "K082", "K074", "K075"],
+    "mo": ["K055", "K082", "K049", "K075"],
+    "bang": ["K049", "K055", "K080", "K082"],
+    "ket": ["K082", "K055", "K079", "K075"],
 }
 HOAT_HINH = ("tí hon", "đất sét", "hoạt hình", "cartoon", "đồ chơi")
 
@@ -51,11 +51,17 @@ def clip_toi(f, ra):
     """Ảnh hoặc video của người dẫn thành clip dọc 1080x1920, 8 giây, không tiếng."""
     vf = "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920"
     if f.suffix.lower() in ANH:
-        # phóng chậm 1,00 -> 1,08 trong 8 giây, căn giữa
-        ff("-loop", "1", "-i", f, "-t", 8, "-vf",
-           f"scale=2160:3840:force_original_aspect_ratio=increase,crop=2160:3840,"
-           f"zoompan=z='1+0.08*on/200':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=200:s=1080x1920:fps=25,format=yuv420p",
+        # Giữ trọn ảnh, thu vào khung 1080x1600 đặt sát đáy (chừa 320 px phía trên cho ô tên, ô liên hệ, kể cả ảnh dọc 9:16); nền là chính ảnh đó làm mờ
+        # (ô tiêu đề, ô liên hệ nằm phía trên nên không che đầu). Rồi phóng chậm 1,00 -> 1,06 trong 8 giây.
+        nen = ra.with_suffix(".nen.png")
+        ff("-i", f, "-filter_complex",
+           "[0]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,boxblur=40:2[bg];"
+           "[0]scale=1080:1600:force_original_aspect_ratio=decrease[fg];[bg][fg]overlay=(W-w)/2:H-h",
+           "-frames:v", 1, nen)
+        ff("-loop", "1", "-i", nen, "-t", 8, "-vf",
+           "scale=2160:3840,zoompan=z='1+0.06*on/200':x='iw/2-(iw/zoom/2)':y='ih-(ih/zoom)':d=200:s=1080x1920:fps=25,format=yuv420p",
            "-an", "-c:v", "libx264", "-preset", "fast", "-crf", 18, ra)
+        nen.unlink(missing_ok=True)
     else:
         ff("-i", f, "-t", 8, "-vf", vf + ",fps=25,format=yuv420p", "-an", "-c:v", "libx264", "-preset", "fast", "-crf", 18, ra)
 
@@ -153,15 +159,20 @@ def main():
     viec = g["viec"][:3]
     # Mỗi việc hiện đúng lúc đọc tới: tìm dòng đầu tiên trong phần 2 có chữ đầu của việc đó (vd "Viết content" -> dòng có
     # "viết"); không thấy thì chia đều; luôn tăng dần và nằm trong [tu, den - 1].
-    moc_viec, truoc = [], m[1]
-    for i, v in enumerate(viec):
-        tu_khoa = v[0].split()[0].lower()
-        tim = next((j for j in range(max(truoc, m[1]), m[2]) if tu_khoa in dong[j - 1].lower()), None)
-        if tim is None:
-            tim = m[1] + round(i * (m[2] - m[1]) / max(len(viec), 1))
-        tim = min(max(tim, truoc), m[2] - 1)
-        moc_viec.append(tim)
-        truoc = tim
+    def moc_theo_chu(ten, tu, den):
+        """moc: N là lúc dòng N bắt đầu. Dò dòng đầu tiên trong [tu, den) có một chữ của mục (bỏ chữ chung chung)."""
+        ra, truoc = [], tu
+        for i, t in enumerate(ten):
+            chu = [w for w in t.lower().replace(",", " ").split() if len(w) > 1 and w not in {"và", "cho", "các", "có"}]
+            tim = next((j for j in range(truoc, den) if any(w in dong[j - 1].lower() for w in chu)), None)
+            if tim is None:
+                tim = tu + round(i * (den - tu) / max(len(ten), 1))
+            tim = min(max(tim, truoc), den - 1)
+            ra.append(tim)
+            truoc = tim
+        return ra
+
+    moc_viec = moc_theo_chu([v[0] for v in viec], m[1], m[2])
     canh = [
         {"loai": "flow-chu", "nen": True, "ten": chon("mo", 0), "tren": b["mo"][0], "duoi": b["mo"][1],
          "tu": m[0], "den": m[1], "viTriPhuDe": 1420, "y": 150},
@@ -172,7 +183,8 @@ def main():
          "tu": m[2], "den": m[3], "viTriPhuDe": 1420, "y": 150},
         {"loai": "canh-bao", "kieuNen": "toi", "tren": "Khách tốt", "duoi": "cho tôi là",
          "dong": [[mau, *x] for mau, x in zip(("xanh", "vang", "xanh"), b["khachTot"][:3])],
-         "moc": [min(m[3] + i, m[4] - 1) for i in range(len(b["khachTot"][:3]))], "tu": m[3], "den": m[4], "viTriPhuDe": 1500},
+         "moc": moc_theo_chu([x[0] for x in b["khachTot"][:3]], m[3], m[4]), "tu": m[3], "den": m[4], "viTriPhuDe": 1500,
+         "linhVat": False},
         {"loai": "ket-comment", "clip": chon("ket", 2), "nhan": h.get("ten", ""), "tieuDe": b["ghiNho"],
          "tuKhoa": b["lienHe"], "tu": m[4], "den": "het", "viTriPhuDe": 1480, "am": "thong-bao", "choLapCanhKet": True},
     ]
