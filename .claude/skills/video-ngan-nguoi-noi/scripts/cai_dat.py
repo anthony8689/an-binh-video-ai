@@ -18,12 +18,19 @@ ENGINE = Path.home() / ".video-ngan" / "engine"
 THU_VIEN = {"faster_whisper": "faster-whisper", "cv2": "opencv-python", "numpy": "numpy", "google.auth": "google-auth",
             "requests": "requests", "playwright": "playwright", "edge_tts": "edge-tts"}
 WINGET = {"ffmpeg": "Gyan.FFmpeg", "ffprobe": "Gyan.FFmpeg", "node": "OpenJS.NodeJS.LTS", "npm": "OpenJS.NodeJS.LTS"}
+BREW = {"ffmpeg": "ffmpeg", "ffprobe": "ffmpeg", "node": "node", "npm": "node"}  # máy Mac (24/11/2026: lớp có học viên dùng MacBook)
+MAC = sys.platform == "darwin"
+CAI_HOMEBREW = '/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"'
 DA_CAI_SAN = -1978335189  # mã winget: gói đã có
 thieu, tu_dan = [], []
 
 
 def lam_moi_path():
     """winget cài xong thì PATH của tiến trình này chưa có thư mục mới: đọc lại PATH của máy và người dùng."""
+    if MAC:
+        them = [x for x in ("/opt/homebrew/bin", "/usr/local/bin") if x not in os.environ.get("PATH", "")]
+        os.environ["PATH"] = os.pathsep.join(them + [os.environ.get("PATH", "")])
+        return
     if sys.platform != "win32":
         return
     import winreg
@@ -53,8 +60,31 @@ def cai_winget(goi):
     return True
 
 
+def cai_brew(goi):
+    lam_moi_path()
+    lenh = f"brew install {goi}"
+    if not shutil.which("brew"):
+        dau = "# Máy Mac chưa có Homebrew: dán lệnh này, gõ mật khẩu máy khi được hỏi (bạn tự gõ, không đưa cho Claude):\n    " + CAI_HOMEBREW
+        if dau not in tu_dan:
+            tu_dan.append(dau)
+        tu_dan.append(lenh)
+        return False
+    print(f"  → tự cài {goi} bằng Homebrew (1–5 phút)...")
+    r = subprocess.run(["brew", "install", goi])
+    lam_moi_path()
+    if r.returncode:
+        tu_dan.append(lenh)
+        return False
+    return True
+
+
 def co(lenh):
+    lam_moi_path()
     tim = shutil.which(lenh)
+    if not tim and MAC and lenh in BREW:
+        print(f"✘ {lenh} chưa có")
+        if cai_brew(BREW[lenh]):
+            tim = shutil.which(lenh)
     if not tim and sys.platform == "win32" and lenh in WINGET:
         print(f"✘ {lenh} chưa có")
         if cai_winget(WINGET[lenh]):
@@ -65,8 +95,11 @@ def co(lenh):
 
 
 def dung_cho_dan(lenh_ds):
-    print("\n✘ Máy chặn cài tự động (diệt virus như Bkav, hoặc thiếu quyền). Bấm Start, gõ PowerShell, chuột phải chọn "
-          "'Run as administrator', dán lần lượt từng lệnh dưới đây:")
+    if MAC:
+        print("\n✘ Chưa tự cài được hết. Mở ứng dụng Terminal (bấm Cmd + Space, gõ Terminal, Enter), dán lần lượt từng lệnh dưới đây:")
+    else:
+        print("\n✘ Máy chặn cài tự động (diệt virus như Bkav, hoặc thiếu quyền). Bấm Start, gõ PowerShell, chuột phải chọn "
+              "'Run as administrator', dán lần lượt từng lệnh dưới đây:")
     for l in dict.fromkeys(lenh_ds):
         print("    " + l)
     print("Xong thì đóng hẳn Claude, mở lại, rồi nói với Claude: 'cài tiếp'.")
@@ -78,7 +111,8 @@ co("ffprobe")
 co("node")
 co("npm")
 if thieu:
-    dung_cho_dan(tu_dan or [f"winget install -e --id {WINGET[x]}" for x in thieu if x in WINGET])
+    dung_cho_dan(tu_dan or ([f"brew install {BREW[x]}" for x in thieu if x in BREW] if MAC else
+                            [f"winget install -e --id {WINGET[x]}" for x in thieu if x in WINGET]))
 
 can_pip = [p for m, p in THU_VIEN.items() if importlib.util.find_spec(m) is None]
 co_gpu = shutil.which("nvidia-smi") is not None and subprocess.run(["nvidia-smi", "-L"], capture_output=True).returncode == 0
@@ -87,9 +121,12 @@ if co_gpu and importlib.util.find_spec("nvidia") is None:
 print("✔ có GPU NVIDIA" if co_gpu else "⚠ không thấy GPU NVIDIA, phần nghe lời sẽ chạy CPU, chậm hơn nhiều")
 if can_pip:
     print("Tự cài thư viện Python:", ", ".join(can_pip))
+    # Python của Homebrew trên Mac chặn pip thường (externally-managed): thử thêm --break-system-packages
     if subprocess.run([sys.executable, "-m", "pip", "install", *can_pip]).returncode and \
-            subprocess.run([sys.executable, "-m", "pip", "install", "--user", *can_pip]).returncode:
-        dung_cho_dan([f'& "{sys.executable}" -m pip install --user ' + " ".join(can_pip)])
+            subprocess.run([sys.executable, "-m", "pip", "install", "--user", *can_pip]).returncode and \
+            subprocess.run([sys.executable, "-m", "pip", "install", "--user", "--break-system-packages", *can_pip]).returncode:
+        dung_cho_dan([(f'"{sys.executable}" -m pip install --user --break-system-packages ' if MAC else
+                       f'& "{sys.executable}" -m pip install --user ') + " ".join(can_pip)])
     importlib.invalidate_caches()
     con = [p for m, p in THU_VIEN.items() if importlib.util.find_spec(m) is None]
     print("✔ đã cài xong thư viện Python" if not con else f"⚠ cài xong nhưng chưa nhận: {', '.join(con)} (mở lại Claude rồi chạy lại)")

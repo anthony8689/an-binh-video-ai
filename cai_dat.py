@@ -1,13 +1,13 @@
 ﻿"""Cài bộ làm video AI của An Bình AI lên máy Windows của học viên.
 
-Cách chạy (PowerShell, trong thư mục kho vừa tải về):
+Cách chạy (PowerShell trên Windows, Terminal trên Mac dùng python3; trong thư mục kho vừa tải về):
     python cai_dat.py            kiểm + tự cài phần mềm còn thiếu + chép skill/agent
     python cai_dat.py --chi-kiem chỉ kiểm, không cài gì (vẫn chép skill/agent nếu chưa có)
     python cai_dat.py --thu-muc "D:/VideoCuaToi"   thêm: tạo sẵn thư mục làm việc (hồ sơ kênh mẫu, anh-video-cua-toi, du-an)
 
 Việc script làm:
 1. Kiểm Python 3.10+, FFmpeg, Node.js, Git, yt-dlp, faster-whisper, edge-tts.
-   Thiếu thì tự cài bằng winget / pip, cài xong kiểm lại.
+   Thiếu thì tự cài bằng winget (Windows) hoặc Homebrew (Mac) và pip, cài xong kiểm lại.
    Bị chặn (diệt virus, thiếu quyền, không có winget) thì in đúng lệnh PowerShell để tự dán.
 2. Chép skill vào %USERPROFILE%\\.claude\\skills và agent vào %USERPROFILE%\\.claude\\agents.
    Tệp đã có y hệt thì bỏ qua; khác thì cất bản cũ vào ~/.claude/sao-luu-an-binh rồi thay bản mới (chạy lại để cập nhật).
@@ -35,6 +35,9 @@ KHO = Path(__file__).resolve().parent
 NGUON_SKILL = KHO / ".claude" / "skills"
 NGUON_AGENT = KHO / ".claude" / "agents"
 WINGET_CO = ["--accept-source-agreements", "--accept-package-agreements", "--silent", "-e"]
+MAC = sys.platform == "darwin"  # 24/11/2026: lớp có học viên dùng MacBook
+CAI_HOMEBREW = '/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"'
+CUA_SO = "Terminal" if MAC else "PowerShell"
 
 
 def nha():
@@ -55,6 +58,10 @@ def chay(lenh, giay=900):
 
 def nap_lai_path():
     """winget cài xong chưa vào PATH của cửa sổ đang mở: đọc lại PATH trong registry + thêm chỗ quen."""
+    if MAC:
+        cu = os.environ.get("PATH", "").split(os.pathsep)
+        os.environ["PATH"] = os.pathsep.join([x for x in ("/opt/homebrew/bin", "/usr/local/bin") if x not in cu] + cu)
+        return
     them = []
     try:
         import winreg
@@ -86,7 +93,7 @@ def co_lenh(ten, doi_so="--version"):
     if ten == "ffmpeg" and not shutil.which("ffmpeg"):
         f = tim_ffmpeg_goi_winget()
         if f:
-            os.environ["PATH"] += ";" + str(f.parent)
+            os.environ["PATH"] += os.pathsep + str(f.parent)
     if not shutil.which(ten):
         return None
     ma, ra = chay([ten, doi_so], 60)
@@ -97,21 +104,28 @@ def co_goi_py(mo_dun):
     return importlib.util.find_spec(mo_dun) is not None
 
 
-# (tên hiển thị, hàm kiểm, lệnh tự cài, lệnh PowerShell để học viên tự dán)
+# (tên hiển thị, hàm kiểm, lệnh tự cài, lệnh để học viên tự dán vào PowerShell trên Windows / Terminal trên Mac)
 PY = f'"{sys.executable}"'
+PIP_TAY = f'"{sys.executable}" -m pip install --user --break-system-packages' if MAC else f'& {PY} -m pip install'
+
+
+def goi_may(ten_win, ten_mac):
+    """Lệnh cài phần mềm máy: winget trên Windows, Homebrew trên Mac."""
+    if MAC:
+        return ["brew", "install", ten_mac], f"brew install {ten_mac}"
+    return ["winget", "install", "--id", ten_win] + WINGET_CO, f"winget install -e --id {ten_win}"
+
+
 MUC = [
-    ("FFmpeg", lambda: co_lenh("ffmpeg", "-version"), ["winget", "install", "--id", "Gyan.FFmpeg"] + WINGET_CO,
-     "winget install -e --id Gyan.FFmpeg"),
-    ("Node.js", lambda: co_lenh("node"), ["winget", "install", "--id", "OpenJS.NodeJS.LTS"] + WINGET_CO,
-     "winget install -e --id OpenJS.NodeJS.LTS"),
-    ("Git", lambda: co_lenh("git"), ["winget", "install", "--id", "Git.Git"] + WINGET_CO,
-     "winget install -e --id Git.Git"),
+    ("FFmpeg", lambda: co_lenh("ffmpeg", "-version"), *goi_may("Gyan.FFmpeg", "ffmpeg")),
+    ("Node.js", lambda: co_lenh("node"), *goi_may("OpenJS.NodeJS.LTS", "node")),
+    ("Git", lambda: co_lenh("git"), *goi_may("Git.Git", "git")),
     ("yt-dlp", lambda: co_lenh("yt-dlp") or ("có (gói Python)" if co_goi_py("yt_dlp") else None),
-     [sys.executable, "-m", "pip", "install", "--upgrade", "yt-dlp"], f"& {PY} -m pip install --upgrade yt-dlp"),
+     [sys.executable, "-m", "pip", "install", "--upgrade", "yt-dlp"], f"{PIP_TAY} --upgrade yt-dlp"),
     ("faster-whisper", lambda: "có" if co_goi_py("faster_whisper") else None,
-     [sys.executable, "-m", "pip", "install", "faster-whisper"], f"& {PY} -m pip install faster-whisper"),
+     [sys.executable, "-m", "pip", "install", "faster-whisper"], f"{PIP_TAY} faster-whisper"),
     ("edge-tts", lambda: "có" if co_goi_py("edge_tts") else None,
-     [sys.executable, "-m", "pip", "install", "edge-tts"], f"& {PY} -m pip install edge-tts"),
+     [sys.executable, "-m", "pip", "install", "edge-tts"], f"{PIP_TAY} edge-tts"),
 ]
 
 
@@ -119,8 +133,8 @@ def kiem_python():
     v = sys.version_info
     if v < (3, 10):
         print(f"  ✘ Python {v.major}.{v.minor} quá cũ (cần 3.10 trở lên).")
-        print("    Dán lệnh này vào PowerShell, cài xong đóng mở lại PowerShell rồi chạy lại cai_dat.py:")
-        print("    winget install -e --id Python.Python.3.12")
+        print(f"    Dán lệnh này vào {CUA_SO}, cài xong đóng mở lại {CUA_SO} rồi chạy lại cai_dat.py:")
+        print("    brew install python@3.12" if MAC else "    winget install -e --id Python.Python.3.12")
         return False
     print(f"  ✔ Python {v.major}.{v.minor}.{v.micro}")
     return True
@@ -141,15 +155,24 @@ def kiem_va_cai(chi_kiem):
             print(f"  ✘ {ten}: chưa có, máy không có winget để tự cài")
             thieu.append((ten, lenh_tay))
             continue
+        if cai[0] == "brew":
+            nap_lai_path()
+            if not shutil.which("brew"):
+                print(f"  ✘ {ten}: chưa có, máy Mac chưa có Homebrew để tự cài")
+                thieu.append(("Homebrew (gõ mật khẩu máy khi được hỏi, tự gõ)", CAI_HOMEBREW))
+                thieu.append((ten, lenh_tay))
+                continue
         print(f"  … {ten}: chưa có, đang tự cài (có thể mất vài phút)…")
         ma, ra = chay(cai)
+        if ma and "externally-managed" in ra and cai[1:4] == ["-m", "pip", "install"]:
+            ma, ra = chay(cai + ["--user", "--break-system-packages"])  # Python của Homebrew trên Mac
         nap_lai_path()
         importlib.invalidate_caches()
         kq = kiem()
         if kq:
             print(f"  ✔ {ten}: đã cài xong ({kq})")
         else:
-            ly_do = "bị chặn (diệt virus hoặc thiếu quyền)" if ma not in (0, 124) else ("quá thời gian" if ma == 124 else "cài xong nhưng chưa nhận, cần mở lại PowerShell")
+            ly_do = "bị chặn (diệt virus hoặc thiếu quyền)" if ma not in (0, 124) else ("quá thời gian" if ma == 124 else f"cài xong nhưng chưa nhận, cần mở lại {CUA_SO}")
             print(f"  ✘ {ten}: tự cài không được — {ly_do}")
             dong = [x for x in ra.strip().splitlines() if x.strip()][-2:]
             for x in dong:
@@ -263,10 +286,13 @@ def main():
 
     print()
     if thieu:
-        print("Còn thiếu phần mềm. Mở PowerShell (chuột phải → Run as administrator nếu bị chặn quyền), dán từng lệnh:")
-        for ten, lenh in thieu:
+        if MAC:
+            print("Còn thiếu phần mềm. Mở ứng dụng Terminal (Cmd + Space, gõ Terminal), dán từng lệnh:")
+        else:
+            print("Còn thiếu phần mềm. Mở PowerShell (chuột phải → Run as administrator nếu bị chặn quyền), dán từng lệnh:")
+        for ten, lenh in dict.fromkeys(thieu):
             print(f"    {lenh}        # {ten}")
-        print("Dán xong đóng PowerShell, mở lại rồi chạy: python cai_dat.py")
+        print(f"Dán xong đóng {CUA_SO}, mở lại rồi chạy: " + ("python3 cai_dat.py" if MAC else "python cai_dat.py"))
         print("\nMÁY CHƯA SẴN SÀNG")
         sys.exit(1)
     if not skill_ok:

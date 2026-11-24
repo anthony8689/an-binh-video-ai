@@ -49,7 +49,7 @@ Không chắc file nào là file quay thì đối chiếu mặt với ảnh tron
 
 ## Chuẩn bị
 
-Câu lệnh đầu tiên trên máy mới: chạy `python cai_dat.py "<thư mục kênh>"` NGAY, không hỏi. Script tự cài phần mềm thiếu (winget, pip, npm), tự kiểm lại, tự chép agent; chỉ khi máy chặn (diệt virus như Bkav, thiếu quyền) nó in lệnh PowerShell: đưa nguyên các lệnh đó cho người dùng dán vào PowerShell chạy quyền quản trị, rồi chạy lại `cai_dat.py`.
+Câu lệnh đầu tiên trên máy mới: chạy `python cai_dat.py "<thư mục kênh>"` NGAY, không hỏi. Script tự cài phần mềm thiếu (winget trên Windows, Homebrew trên Mac, pip, npm), tự kiểm lại, tự chép agent; chỉ khi máy chặn (diệt virus như Bkav, thiếu quyền) nó in lệnh PowerShell: đưa nguyên các lệnh đó cho người dùng dán vào PowerShell chạy quyền quản trị (Windows) hoặc Terminal (Mac, tự gõ mật khẩu máy khi Homebrew hỏi; Claude không gõ thay), rồi chạy lại `cai_dat.py`.
 
 
 0. Cần trang nhắc lời khi quay: `python nhac_loi.py <dự án>`, đọc từ `loi-thoai.txt`.
