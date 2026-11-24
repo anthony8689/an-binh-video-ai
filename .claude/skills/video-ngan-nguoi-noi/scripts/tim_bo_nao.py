@@ -59,15 +59,16 @@ def tim():
     nha = Path.home()
     cho = [nha / "Desktop", nha / "Documents", nha / "Downloads"]
     cho += sorted(nha.glob("OneDrive*"))
-    cho += [Path(f"{o}:/") for o in "DEF" if os.path.exists(f"{o}:/")]
-    # ưu tiên Bộ Não Khởi Động (lớp dùng kiểu này) hơn kho Obsidian
-    thay = []
-    for c in cho:
-        quet(c, 3, thay)
-        kd = [r for r in thay if r[0] == "khoi-dong"]
-        if kd:
-            return kd[0]
-    return thay[0] if thay else (None, None)
+    # Thư mục cá nhân trước; thấy bộ não ở đó thì dùng luôn, KHÔNG lục sang ổ khác (thử 24/11/2026: máy có bản bộ não
+    # thử nghiệm ở E:\TEMP bị chọn nhầm thay cho Second Brain thật trong Documents). Ưu tiên Bộ Não Khởi Động hơn Obsidian.
+    for nhom in (cho, [Path(f"{o}:/") for o in "DEF" if os.path.exists(f"{o}:/")]):
+        thay = []
+        for c in nhom:
+            quet(c, 3, thay)
+        if thay:
+            kd = [r for r in thay if r[0] == "khoi-dong"]
+            return kd[0] if kd else thay[0]
+    return None, None
 
 
 if __name__ == "__main__":
