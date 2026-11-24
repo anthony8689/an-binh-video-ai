@@ -290,6 +290,56 @@ print(("✔ " if not thua else "✘ ") + "MoHinh.tsx chỉ dùng hàm Remotion m
 goi_khac = set(re.findall(r"from\s*'(@remotion/[^']+)'", src)) - {"@remotion/google-fonts/BeVietnamPro"}
 hong += bool(goi_khac)
 print(("✔ " if not goi_khac else "✘ ") + "MoHinh.tsx không dùng gói @remotion khác ngoài font" + (f": {', '.join(sorted(goi_khac))}" if goi_khac else ""))
+
+
+# edit.py (thử máy học viên 24/11/2026): chữ lặp liền bị bỏ, láy một chữ giữ; chọn câu bằng chon.json thì thẻ tiêu đề hiện
+# đúng dòng nói chữ tiêu đề, cảnh clip kho ≤ 7,5 giây, cảnh nối liền, mốc tự rải
+def thu_edit():
+    from edit import bo_lap_lien, lap_tu_chon, tach_cau
+    lien_tieng = [{"word": " a", "start": i * 0.4, "end": i * 0.4 + 0.4} for i in range(30)]  # nói liền 12 giây, khe 0
+    phan = tach_cau([lien_tieng], 8.0)
+    ok0 = len(phan) == 2 and all(p[-1]["end"] - p[0]["start"] >= 3 for p in phan)
+    ok1 = bo_lap_lien("agent là nhân viên nhân viên mà có thể".split()) == (2, 4) and bo_lap_lien("hi vọng rằng cái hi vọng rằng".split()) == (0, 4) and bo_lap_lien("kiểm tra email kiểm tra chứng từ".split()) is None
+    ok2 = bo_lap_lien("đi từ từ thôi nhé".split()) is None
+
+    def cau(so, bd, chu_):
+        ws = [{"word": " " + t, "start": round(bd + i * 0.4, 2), "end": round(bd + i * 0.4 + 0.3, 2)} for i, t in enumerate(chu_.split())]
+        return {"so": so, "bd": ws[0]["start"], "kt": ws[-1]["end"], "chu": chu_, "w": ws}
+    cj = {"nguon": "x.mp4", "lang": [], "cau": [
+        cau(1, 0.0, "xin chào mọi người hôm nay mình chia sẻ về cái sức mạnh của AI agent"),
+        cau(2, 8.0, "agent thì chúng ta có thể hiểu đơn giản nó là nhân viên có thể hỗ trợ chúng ta làm việc mỗi ngày rất nhanh và chính xác hơn nhiều"),
+        cau(3, 20.0, "nó làm kế toán thuế nhân sự và nghiên cứu thị trường cho mình"),
+        cau(4, 26.0, "video của mình tạm đến đây thôi cảm ơn mọi người")]}
+    chon = {"tieuDe": "SỨC MẠNH|AI AGENT", "doan": [
+        {"cau": 1}, {"cau": 2, "minhHoa": {"loai": "flow-chu", "ten": "M01", "tren": "AGENT", "duoi": "NHÂN VIÊN AI"}},
+        {"cau": 3, "minhHoa": {"loai": "danh-sach-buoc", "tren": "Agent làm gì", "buoc": [{"ten": "Kế toán"}, {"ten": "Nhân sự"}]}},
+        {"cau": 4, "chu": "cảm ơn mọi người"}], "sua": {"kế toán thuế": "kế toán, thuế"}}
+    doan, dong, canh, tg = lap_tu_chon(cj, chon)[:4]
+    lien = all(canh[i]["den"] == canh[i + 1]["tu"] for i in range(len(canh) - 1)) and canh[-1]["den"] == "het"
+    tieu = "sức mạnh" in dong[canh[0]["at"] - 1].lower()
+    fc = next(c for c in canh if c["loai"] == "flow-chu")
+    x = chon["doan"][1]  # câu 2 dài 10 giây: cảnh clip phải dừng trước 7,5 giây, phần còn lại về người nói
+    clip_ngan = fc["den"] <= x["_dong"][1] and x["_bat"][fc["den"] - x["_dong"][0]] - x["_bat"][fc["tu"] - x["_dong"][0]] < 7.5
+    ds = next(c for c in canh if c["loai"] == "danh-sach-buoc")
+    cuoi = dong[-1] == "cảm ơn mọi người" and len(doan) == 3 and all(doan[i][2] < doan[i + 1][1] for i in range(len(doan) - 1)) and "nó làm kế toán," in dong
+    if not (ok0 and ok1 and ok2 and lien and tieu and clip_ngan and len(ds.get("moc", [])) == 2 and 0.5 < ds["moc"][0] < 0.8 and cuoi):
+        print("  ", ok1, ok2, lien, tieu, clip_ngan, ds.get("moc"), cuoi, dong, canh)
+        return False
+    return True
+
+
+try:
+    from nghiem_thu import lien_nguon
+    # đoạn 0–1 liền nhau trong file gốc (liệt kê "kiểm tra email, | kiểm tra chứng từ") được miễn; đoạn 1–2 cách 60 giây thì vẫn bắt
+    ok_ln = lien_nguon([[0, 67.4, 71.5], [0, 71.86, 74.2], [0, 135.0, 136.0]]) == {0}
+    hong += not ok_ln
+    print(("✔ " if ok_ln else "✘ ") + "nghiem_thu: lặp 2–3 chữ giữa hai đoạn liền nhau trong file gốc không bị tính, đoạn xa vẫn bị bắt")
+    ok = thu_edit()
+except SystemExit as e:
+    ok = False
+    print("  ", e)
+hong += not ok
+print(("✔ " if ok else "✘ ") + "edit.py: bỏ chữ lặp liền, chọn câu theo chon.json, thẻ tiêu đề đúng dòng, clip ≤ 7,5 giây, mốc tự rải")
 print()
 if hong:
     sys.exit(f"✘ {hong} mục hồi quy hỏng. Không đóng gói.")

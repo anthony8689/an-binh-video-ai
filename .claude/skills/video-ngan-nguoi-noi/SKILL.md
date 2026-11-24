@@ -172,20 +172,25 @@ Script tự: nhận ảnh, video trong `<thư mục kênh>/anh-video-cua-toi/` (
 
 Luật đi kèm (máy kiểm): `loai.txt` có `gioi-thieu` thì `tao_giong.py`, `nghiem_thu.py` bỏ luật câu kết của kênh, vẫn giữ cách đọc, luật 9, cảm xúc, độ dài vế. Cảnh cho video giới thiệu phải thật, sang, hợp người làm nghề (văn phòng, góc làm việc, màn hình số liệu, thành phố Việt Nam); KHÔNG dùng hoạt hình, đồ chơi tí hon, đất sét, 3D cartoon, robot chạy băng chuyền như xe lửa (người dẫn chê 24/11/2026); `lap_canh.py` chặn clip có ghi chú "tí hon", "đất sét", "hoạt hình", "cartoon", "đồ chơi", nên thêm clip mới vào kho thì ghi đúng kiểu ở cột ghi_chu. Tự đặt cảnh bằng tay thì nhớ cách đếm mốc trong `mo-hinh-canh.md`.
 
-## Edit video từ file quay (câu "Edit video <tên file> cho tôi")
+## Edit video từ file quay (câu "Edit video <tên file> cho tôi", có thể kèm "dài 30 giây")
 
-Không hỏi duyệt từng bước. Tìm file người dùng nói (thư mục làm việc, Downloads, Desktop; trùng tên thì lấy file mới nhất và nói rõ đã lấy file nào). Rồi:
+Không hỏi duyệt từng bước. Mục tiêu bản 30 giây: khoảng 10 phút kể cả chấm. Tìm file người dùng nói (thư mục làm việc, Downloads, Desktop; trùng tên thì lấy file mới nhất và nói rõ đã lấy file nào). Câu có "30 giây", "ngắn", "reels" thì `--dai 30` (hoặc số giây họ nói); không nói độ dài thì giữ trọn lời (bỏ `--dai`). Rồi:
 
 0. Thư mục kênh: có bộ não thì chạy `python "<skill>/scripts/tim_bo_nao.py"` từ thư mục đang mở và dùng `thu_muc_kenh` (không bao giờ đặt trong bộ não); chưa có `ho-so-kenh.json` ở đó thì `python cai_dat.py "<thư mục kênh>"`. Không có bộ não thì dùng `Video-AI` trong thư mục đang mở.
-1. Nghe thử 20 giây đầu (`python whisper_vi.py "<file>" --giay 20`) để đặt tiêu đề mở đầu đúng ý trong lời, tối đa 14 ký tự mỗi dòng, không thêm ý ngoài lời.
-2. Giao agent `video-dung` (hoặc tự chạy):
-```bash
-python edit.py "<thư mục kênh>" "<file quay>" --tieu-de "DÒNG 1|DÒNG 2"
-```
-Lệnh dừng ở ảnh soát. **Chèn cảnh trám (khi `kho-canh` của kênh có clip, 1 phút):** chọn 2–4 đoạn người nói nêu ý cụ thể (việc làm, con số, công cụ, kết quả), mỗi đoạn 3–6 dòng `loi.txt`, cách nhau ≥ 15 giây, không ở 5 giây đầu và 5 giây cuối. Mỗi đoạn thay bằng một cảnh `flow-chu` (`ten` = mã clip trong `kho-canh/danh-muc-canh.csv` có `nhom`, `ghi_chu` khớp ý câu, mỗi clip một lần; `tren`, `duoi` ≤ 14 ký tự, lấy đúng chữ người nói ở đoạn đó; `nen: true`, `viTriPhuDe: 1420`, `y: 150`), tách cảnh `nguoi` quanh nó cho liền mốc. Video ngắn dưới 25 giây thì 1–2 cảnh. Kho trống thì bỏ bước này. **Soát phụ đề (bắt buộc, 2–3 phút với video 1–2 phút):** đọc `loi.txt`, sửa chính tả Whisper nghe sai (vd "đất đỏ" → "đắt đỏ"), ngắt lại dòng theo cụm nghĩa (không cắt đôi từ ghép "sinh / viên", "học / phí"), mỗi dòng ≤ 28 ký tự; KHÔNG thêm bớt chữ; dòng Whisper nghe vô nghĩa mà không chắc thì giữ nguyên và báo người dùng số dòng để họ tự nghe. Sửa `loi.txt` xong mới đặt mốc cảnh trám (mốc là số dòng). Rồi `python dung.py "<dự án>" --tu phu-de --het`.
-Script tự: cắt viền đen (màn ngang trong khung dọc thì đặt giữa, nền mờ), nghe lời, BỎ tiếng ậm ừ, lần nói hỏng (cả giữa câu), chữ lặp ở chỗ nối, câu Whisper bịa (vd "Hẹn gặp lại các bạn trong những video tiếp theo" ở cuối file: nhiều chữ mà âm thanh gần như im); vùng Whisper ghi giờ dồn thì tự nghe lại riêng vùng đó, tách khoảng lặng thật trên 0,45 giây; chỉ bỏ, không đảo, không thêm lời; ghi `bo-cat.txt` (đã bỏ gì, vì sao); lập phụ đề, cảnh người nói, nhạc nhẹ; nghiệm thu; gắn nhận diện kênh.
-3. Còn ✘ thì sửa theo dòng ✘ (thường: chỉnh `doan.json` ở chỗ báo, chạy `dung.py "<dự án>" --tu master --het`), tối đa 3 vòng.
-4. Giao agent `video-cham-diem` chấm; báo người dùng đường dẫn, thời lượng, `bo-cat.txt` tóm tắt, phiếu chấm.
+1. **Bước 1, nghe và chia câu (1 phút):** `python edit.py "<thư mục kênh>" "<file quay>" [--dai 30]`. Script tự cắt viền đen (màn ngang trong khung dọc thì đặt giữa, nền mờ), nghe lời (đoạn Whisper lạc tiếng thì tự nghe lại), BỎ ậm ừ, lần nói hỏng (cả khi có "ờ" xen giữa), chữ lặp liền ("nhân viên nhân viên"), nói lại giữa câu, lặp ở chỗ nối, câu Whisper bịa; ghi `bo-cat.txt`; chia lời thành câu đánh số trong `cau.txt` (giờ, số giây, chữ) và một `chon.json` nháp, rồi DỪNG. Lời đã nghe lưu ở `nghe.json`, chạy lại không phải nghe lại.
+2. **Cảnh của chính người dùng (nếu có):** `anh-video-cua-toi` có ảnh, video (hoặc ngăn 06 của bộ não thì CHÉP sang đó) thì `python canh_toi.py "<dự án>"` ra mã TOI1…, ưu tiên dùng trong `minhHoa` trước clip kho.
+3. **Bước 2, Claude tự soạn `chon.json` (1–2 phút, không hỏi ai), giao agent `video-dung` hoặc tự làm:** đọc `cau.txt`, ghi:
+   - `tieuDe`: "DÒNG 1|DÒNG 2", mỗi dòng ≤ 14 ký tự, đúng ý người nói ở câu đầu (đọc trong `cau.txt`, không cần nghe thử riêng).
+   - `doan`: các câu giữ, đúng thứ tự gốc (không đảo). Bản 30 giây (25–35 giây): câu chào hoặc móc câu nêu chủ đề → 2–3 ý chính rõ nhất (định nghĩa, ví dụ cụ thể, kết quả, con số) → câu kết trọn ý. Bỏ câu rào đón, lặp ý, bỏ dở. Chỉ lấy một khúc của câu dài thì thêm `"chu": "<chép đúng chữ khúc đó từ cau.txt>"`; khúc phải là ý trọn.
+   - `minhHoa` cho 2–4 khúc (bản 30 giây: 2–3; video 1–2 phút: 3–5), chiếm khoảng 30–50% thời lượng, KHÔNG ở câu đầu và câu cuối, hai cảnh minh họa không liền nhau:
+     - Câu nêu khái niệm, hình ảnh: `{"loai": "flow-chu", "ten": "<TOI1 hoặc mã clip>", "tren": "...", "duoi": "..."}`. Clip kho lấy trong `kho-canh/danh-muc-canh.csv` có `nhom`, `ghi_chu` khớp ĐÚNG ý câu VÀ hợp nghề người nói, mỗi clip một lần; kho không có cảnh hợp nghề (làm bánh, spa, nông sản...) thì KHÔNG nhét cảnh công nghệ lạc đề: dùng TOI hoặc thẻ đồ họa bên dưới, và báo người dùng thả 3–5 ảnh, clip ngắn cửa hàng, sản phẩm vào `anh-video-cua-toi` rồi gõ lại lệnh. Chữ ≤ 14 ký tự lấy từ lời nói ở 2 giây đầu cảnh (chữ hiện ngay khi vào cảnh). Script tự cắt cảnh clip ≤ 7,5 giây.
+     - Câu liệt kê việc, bước, lợi ích: `{"loai": "danh-sach-buoc", "tren": "...", "buoc": [{"ten": "..."}...]}` tối đa 5; mục viết đúng chữ người nói để script tự đặt mốc sáng đúng lúc nói.
+     - So sánh hai phía: `hai-phe`, `truoc-sau`; số liệu: `nguoi-so`; nói chuyện với AI: `khung-chat`. Trường xem `references/mo-hinh-canh.md`; thiếu `moc` thì script tự đặt. Một cảnh phủ luôn câu kế tiếp (danh sách nói qua 2 câu): thêm `"gop": 1`.
+     - Mọi chữ trên cảnh (kể cả `tren`, `duoi`) chỉ lấy từ lời của khúc đã chọn, không lấy từ câu đã bỏ.
+   - `sua`: chữ Whisper nghe sai → đúng, ví dụ `{"skin": "skill", "đất đỏ": "đắt đỏ"}`. Sửa ở đây, KHÔNG sửa tay `loi.txt` (số dòng và mốc cảnh phải khớp). Không thêm bớt ý; chữ nghe vô nghĩa mà không chắc thì giữ, báo người dùng giây để họ tự nghe. Tên riêng trong `sua` và `tieuDe` tự vào `goi-y.txt` để nghiệm thu nghe đúng (thêm `goiY` nếu cần).
+   Rồi `python edit.py "<dự án>" --chon --het`: tự tính dòng phụ đề, mốc cảnh, thẻ tiêu đề hiện đúng lúc nói chữ tiêu đề, điểm cắt giữa khe (không cụt chữ cuối), dựng, nghiệm thu, gắn nhận diện kênh. ⚠ lệch độ dài thì thêm, bớt câu rồi chạy lại.
+4. Còn ✘: lặp hoặc nói hỏng thì bỏ câu đó khỏi `chon.json` hoặc dùng `chu` cắt bớt rồi chạy lại bước 2; chữ tràn thì rút gọn chữ trong `minhHoa`. Tối đa 3 vòng. Xem `to-soat.jpg` bằng mắt.
+5. Giao agent `video-cham-diem` chấm; báo người dùng đường dẫn, thời lượng, câu đã chọn và cảnh minh họa, `bo-cat.txt` tóm tắt, phiếu chấm, thời gian từng chặng.
 
 ## Luật nghiệm thu (bắt buộc)
 

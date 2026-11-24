@@ -1,8 +1,8 @@
 """Tự nhận gói KHO-HOC-VIEN (cảnh AI không người, nhạc, tiếng hiệu ứng) cho thư mục kênh (24/11/2026).
 
-  python nhap_kho.py "<thư mục kênh>"
+  python nhap_kho.py "<thư mục kênh>" ["<đường dẫn gói zip hoặc thư mục KHO-HOC-VIEN>"]
 
-Tìm KHO-HOC-VIEN*.zip hoặc thư mục KHO-HOC-VIEN ở: thư mục kênh, thư mục cha của nó, Downloads, Desktop, Documents.
+Tìm KHO-HOC-VIEN*.zip hoặc thư mục KHO-HOC-VIEN: chỗ hay để trước, rồi lục sâu thư mục cá nhân và ổ D: trở đi.
 Kho cảnh của kênh còn trống thì giải nén kho-canh/ và tai-nguyen/ vào thư mục kênh (không ghi đè tệp đã có),
 rồi điền boNhac, boTieng, nhac, tiengChuyenCanh vào ho-so-kenh.json nếu các mục đó còn trống hoặc trỏ tới file không có.
 Không thấy gói thì im lặng bỏ qua: bni.py, tron_am.py vẫn chạy được (nền màu tự tạo, chỉ có giọng)."""
@@ -17,18 +17,56 @@ NHAC = ("beat-vlog", "phonk", "future-bass")
 TIENG = ("luot", "luot-manh", "hien-the", "thong-bao", "chup", "nhieu", "thanh-cong")
 
 
+BO_QUA = {"node_modules", ".git", "AppData", "Windows", "Program Files", "Program Files (x86)", "$Recycle.Bin",
+          "System Volume Information", "kho-canh", "du-an", ".cache", ".video-ngan", ".claude"}
+
+
+def la_goi(p: Path):
+    """Gói zip KHO-HOC-VIEN*.zip (kể cả "KHO-HOC-VIEN (1).zip" trình duyệt tự đổi tên), hoặc thư mục đã giải nén."""
+    if p.is_file() and p.name.upper().startswith("KHO-HOC-VIEN") and p.suffix.lower() == ".zip":
+        return p
+    if p.is_dir() and p.name.upper().startswith("KHO-HOC-VIEN"):
+        for g in (p, p / "KHO-HOC-VIEN"):  # giải nén kiểu "mỗi zip một thư mục" thì bị lồng 2 lớp
+            if (g / "kho-canh").is_dir():
+                return g
+    return None
+
+
+def quet(goc: Path, sau: int):
+    try:
+        con = list(goc.iterdir())
+    except OSError:
+        return []
+    ra = [g for g in (la_goi(x) for x in con) if g]
+    if sau > 0:
+        for x in sorted(con):
+            try:
+                if x.is_dir() and x.name not in BO_QUA and not x.name.startswith(("$", ".")) and not la_goi(x):
+                    ra += quet(x, sau - 1)
+            except OSError:
+                pass
+    return ra
+
+
 def tim_goi(kenh: Path):
+    """Tìm gói ở chỗ hay để trước (thư mục kênh, cạnh bộ não, Downloads, Desktop, Documents), rồi lục sâu các thư mục
+    cá nhân (4 cấp) và gốc ổ D:..H: (3 cấp). Học viên để gói ở đâu cũng thấy (thử 24/11/2026). Lấy bản mới nhất."""
+    import os
     nha = Path.home()
     for cho in (kenh, kenh.parent, nha / "Downloads", nha / "Desktop", nha / "Documents"):
-        if not cho.is_dir():
-            continue
-        thu_muc = cho / "KHO-HOC-VIEN"
-        if (thu_muc / "kho-canh").is_dir():
-            return thu_muc
-        zips = sorted(cho.glob("KHO-HOC-VIEN*.zip"), key=lambda f: f.stat().st_mtime, reverse=True)
-        if zips:
-            return zips[0]
-    return None
+        if cho.is_dir():
+            thay = quet(cho, 0)
+            if thay:
+                return max(thay, key=lambda f: f.stat().st_mtime)
+    thay = []
+    for cho in [nha / "Downloads", nha / "Desktop", nha / "Documents", nha / "Videos", *sorted(nha.glob("OneDrive*"))]:
+        if cho.is_dir():
+            thay += quet(cho, 4)
+    if not thay:
+        for o in "DEFGH":
+            if os.path.exists(f"{o}:/"):
+                thay += quet(Path(f"{o}:/"), 3)
+    return max(thay, key=lambda f: f.stat().st_mtime) if thay else None
 
 
 def kho_trong(kenh: Path):
@@ -36,13 +74,15 @@ def kho_trong(kenh: Path):
     return not k.is_dir() or not any(k.rglob("*.mp4"))
 
 
-def nhap(kenh) -> bool:
+def nhap(kenh, goi=None) -> bool:
     kenh = Path(kenh)
     if not kho_trong(kenh):
         dien_ho_so(kenh)
         return False
-    goi = tim_goi(kenh)
+    goi = la_goi(Path(goi)) if goi else tim_goi(kenh)
     if goi is None:
+        print("⚠ chưa thấy gói KHO-HOC-VIEN.zip trên máy: video vẫn làm được (nền màu, chưa có nhạc). Có gói thì hỏi người dùng "
+              f"để ở đâu rồi chạy: python nhap_kho.py \"{kenh}\" \"<đường dẫn gói>\"")
         return False
     print(f"• thấy gói kho {goi}: đang chép cảnh, nhạc vào {kenh} (vài phút lần đầu)")
     if goi.is_dir():
@@ -101,5 +141,5 @@ def dien_ho_so(kenh: Path):
 
 
 if __name__ == "__main__":
-    if not nhap(sys.argv[1]):
+    if not nhap(sys.argv[1], sys.argv[2] if len(sys.argv) > 2 else None):
         print("• không có gói KHO-HOC-VIEN mới cần nhận (hoặc kho đã có)")

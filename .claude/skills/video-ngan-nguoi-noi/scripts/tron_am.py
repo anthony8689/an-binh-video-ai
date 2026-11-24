@@ -69,7 +69,11 @@ lufs_nhac = float(re.findall(r"I:\s+(-?[\d.]+) LUFS", do(nhac, "ebur128=framelog
 lufs_giong = float(re.findall(r"I:\s+(-?[\d.]+) LUFS", do(master, "ebur128=framelog=quiet"))[-1])
 g_nhac = lufs_giong - DUOI_GIONG - lufs_nhac
 files = sorted({x for _, x in phat})
-g_sfx = {f: -14 - float(re.findall(r"max_volume: (-?[\d.]+) dB", do(f, "volumedetect"))[-1]) for f in {f for f, _ in files}}
+# Video edit từ file quay: người nói liền, cảnh minh họa vào giữa câu nên tiếng chuyển cảnh đè chữ (bản 30 giây 24/11/2026,
+# đủ lời tụt từ 95% trên master xuống 85% sau trộn). Đỉnh tiếng chuyển cảnh -24 dB thay vì -14 dB.
+from kiem_chot import loai_du_an
+DINH_SFX = -24 if "edit" in loai_du_an(da).split() else -14
+g_sfx = {f: DINH_SFX - float(re.findall(r"max_volume: (-?[\d.]+) dB", do(f, "volumedetect"))[-1]) for f in {f for f, _ in files}}
 print(json.dumps({"giong_lufs": lufs_giong, "nhac_lufs": lufs_nhac, "gain_nhac_db": round(g_nhac, 1), "so_tieng": len(phat)}))
 
 loc = [f"[1:a]apad=whole_dur={TONG}[g]"] + (["[g]asplit=2[g][gk]",

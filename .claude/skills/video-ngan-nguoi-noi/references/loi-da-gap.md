@@ -159,3 +159,12 @@ Câu lệnh "Dựng một video giới thiệu bản thân cho tôi theo cấu t
 - Người chấm bắt lỗi CHẶN ở bản 1: bộ lọc "câu bịa theo tốc độ" bỏ nhầm nửa câu thật về lương. Gốc: nghe cả file, Whisper chép lặp đầu câu trước vào đoạn sau với giờ dồn giả và ghi "700 .000." thay cho "700 đến 1.200 euro". Sửa: câu nhanh bất thường thì đo tiếng thật (không có tiếng mới là bịa, bỏ); có tiếng thì NGHE LẠI riêng vùng đó (không nối ngữ cảnh) và thay lời. Tránh "dò nói lại" bỏ nhầm câu thật.
 - Phụ đề Whisper sai chính tả ("đất đỏ") và ngắt dòng cắt đôi từ ghép → máy ngắt theo dấu câu rồi chia đôi ở chữ nối; thêm bước người dựng soát `loi.txt` trước khi xuất (không thêm bớt chữ).
 - Hình người nói nhỏ (màn ngang 720x404 trong khung dọc) → dải giữa phóng 1,4 lần trên nền mờ.
+
+## 24/11/2026 - Edit video thử máy học viên (lần 1, 111 giây, 25 phút)
+- Thẻ tiêu đề `nguoi-chu` đặt `at` cố định, hiện trước giọng 2,2 giây (người chấm bắt). Sửa: edit.py tìm dòng có chữ của tiêu đề.
+- Lọt "nhân viên nhân viên" (lặp 2 chữ liền nhau) và "agent nó khác skill / ờ / agent nó khác skill" (đảo ậm ừ xen giữa). Sửa: bắt lặp liền 2–3 chữ, bỏ qua đảo ậm ừ khi so đảo sau. Có bài hồi quy.
+- Video chỉ có người nói, dễ nhàm (anh góp ý). Sửa: edit.py hai bước, Claude soạn chon.json chọn câu và 2–4 cảnh minh họa; mốc cảnh tự tính theo câu, clip kho tự cắt ≤ 7,5 giây.
+- Sửa tay loi.txt làm lệch mốc cảnh. Sửa: chữ nghe sai ghi ở "sua" của chon.json.
+- Bản 30 giây: edit.py --dai 30.
+- Lần 2 (bản 30 giây, 24/11 18:27): chia câu băm 3 chữ một câu khi Whisper ghi khe 0 (sửa: tách ở khe dài nhất, hòa thì gần giữa, mỗi phần ≥ 3 giây); hồ sơ kênh mẫu có `chuLinhVat: "AB"` làm linh vật máy học viên mang chữ AB (sửa: để trống); nghiệm thu báo lặp "kiểm tra email, | kiểm tra chứng từ" (người nói liệt kê, hai đoạn liền nhau trong file gốc, sửa: không tính lặp 2–3 chữ ở đó). Có bài hồi quy.
+- Lần 3–4 (18:37–18:56): Whisper có lần lạc tiếng (chữ Hàn, Nga, "GORDON") → edit.py tự nghe lại đoạn đó; nhạc nền làm "agent" thành "agile" lúc nghiệm thu → edit.py ghi goi-y.txt từ "sua"/tieuDe; cắt theo giờ chữ Whisper làm cụt đuôi chữ, lọt đầu chữ kế (chấm 7,5/10) → bám điểm cắt vào chỗ lặng thật, ưu tiên chỗ lặng SAU chữ cuối; tiếng chuyển cảnh đè chữ khi cảnh minh họa vào giữa câu → tron_am.py hạ đỉnh tiếng chuyển cảnh còn -24 dB cho loại edit. Gộp 3 khối của phiên chính: bo_lap_trong, cắt mép bằng VAD, tự chỉnh tốc độ (toc ≤ 1,2).

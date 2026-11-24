@@ -37,7 +37,7 @@ def dong_bo_engine(h, da=None):
     if str(kenh.get("ten", "")).strip().upper() == "TÊN KÊNH":  # hồ sơ mẫu chưa điền: không in chữ mẫu lên video (thử 24/11/2026)
         kenh["ten"] = ""
     # Video giới thiệu chỉ dùng ảnh thật của người dẫn (TOI*) hoặc nền màu tự tạo (NEN*): không gắn nhãn "Cảnh AI minh họa" (thử 24/11/2026)
-    if da is not None and (da / "canh.json").exists() and "gioi-thieu" in ((da / "loai.txt").read_text(encoding="utf-8") if (da / "loai.txt").exists() else ""):
+    if da is not None and (da / "canh.json").exists() and {"gioi-thieu", "edit"} & set(((da / "loai.txt").read_text(encoding="utf-8") if (da / "loai.txt").exists() else "").split()):
         clip = [c.get("ten") or c.get("clip") for c in doc(da / "canh.json")["canh"] if c.get("ten") or c.get("clip")]
         if clip and all(str(x).startswith(("TOI", "NEN")) for x in clip):
             kenh["nhanCanhAI"] = ""
