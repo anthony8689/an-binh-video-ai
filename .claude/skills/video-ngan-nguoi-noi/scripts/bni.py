@@ -41,6 +41,8 @@ UU_TIEN = {
     "ket": ["K082", "K055", "K079", "K075"],
 }
 HOAT_HINH = ("tí hon", "đất sét", "hoạt hình", "cartoon", "đồ chơi")
+# Nền màu dịu tự tạo khi kho cảnh trống: kem cam, xanh ngọc nhạt, tím hồng nhạt (3 vai mở, bằng chứng, kết)
+NEN_MEM = [("0xF6D9C4", "0xE9B7A0", "0xF3E6D8"), ("0xCFE8E4", "0xA9D3CF", "0xE6F2EF"), ("0xE8DDF0", "0xD6C3E6", "0xF4EDF7")]
 
 
 def ff(*a):
@@ -120,7 +122,14 @@ def main():
             if ma in co and ma not in da_dung:
                 da_dung.add(ma)
                 return ma
-        sys.exit("✘ Kho cảnh không có clip không người nào dùng được. Kiểm khoCanh trong hồ sơ kênh.")
+        # Máy học viên mới chưa có kho cảnh (24/11/2026, thử trên máy sạch bị dừng ở đây): tự tạo nền màu dịu chuyển động
+        # chậm, không người, không hoạt hình; kho có clip thì không tới đây.
+        ma = f"NEN{so_toi + 1}"
+        c0, c1, c2 = NEN_MEM[so_toi % len(NEN_MEM)]
+        ff("-f", "lavfi", "-i", f"gradients=s=1080x1920:c0={c0}:c1={c1}:c2={c2}:n=3:speed=0.015:d=8:r=25,format=yuv420p",
+           "-t", 8, "-c:v", "libx264", "-preset", "fast", "-crf", 20, canh_dir / f"{ma}.mp4")
+        print(f"• kho cảnh trống: tự tạo nền màu {ma} cho vai '{vai}' (thả ảnh, video của mình vào anh-video-cua-toi sẽ đẹp hơn)")
+        return ma
 
     # 3. Giọng
     giong = da / "giong"
@@ -162,17 +171,33 @@ def main():
     def moc_theo_chu(ten, tu, den):
         """moc: N là lúc dòng N bắt đầu. Dò dòng đầu tiên trong [tu, den) có một chữ của mục (bỏ chữ chung chung)."""
         ra, truoc = [], tu
+        tach = [[w for w in t.lower().replace(",", " ").split() if len(w) > 1 and w not in {"và", "cho", "các", "có"}] for t in ten]
+        # Chữ có ở từ 2 mục trở lên ("hoa" trong "Hoa khai trương", "Hoa sinh nhật") khớp ngay dòng đầu làm mọi thẻ hiện
+        # cùng lúc (thử 24/11/2026): bỏ, chỉ dò chữ riêng của từng mục.
+        chung = {w for w in {x for c in tach for x in c} if sum(w in c for c in tach) > 1}
         for i, t in enumerate(ten):
-            chu = [w for w in t.lower().replace(",", " ").split() if len(w) > 1 and w not in {"và", "cho", "các", "có"}]
-            tim = next((j for j in range(truoc, den) if any(w in dong[j - 1].lower() for w in chu)), None)
+            chu = [w for w in tach[i] if w not in chung] or tach[i]
+            bat_dau = truoc + (1 if i and truoc + 1 < den else 0)  # mục sau hiện sau mục trước
+            tim = next((j for j in range(bat_dau, den) if any(w in dong[j - 1].lower() for w in chu)), None)
             if tim is None:
                 tim = tu + round(i * (den - tu) / max(len(ten), 1))
-            tim = min(max(tim, truoc), den - 1)
+            tim = min(max(tim, bat_dau), den - 1)
             ra.append(tim)
             truoc = tim
         return ra
 
     moc_viec = moc_theo_chu([v[0] for v in viec], m[1], m[2])
+    # Hồ sơ kênh mẫu để "TÊN KÊNH": học viên chưa sửa thì lấy thương hiệu trong bni.json, không in chữ mẫu lên video
+    nhan_kenh = h.get("ten", "")
+    if not nhan_kenh or nhan_kenh.strip().upper() == "TÊN KÊNH":
+        nhan_kenh = b["mo"][1]
+        f_hs = kenh / "ho-so-kenh.json"
+        if f_hs.exists():  # nhãn góc của dung.py cũng đọc "ten": điền luôn vào hồ sơ mẫu, chỉ thay đúng chữ mẫu
+            hs = json.loads(f_hs.read_text(encoding="utf-8"))
+            if str(hs.get("ten", "")).strip().upper() in ("", "TÊN KÊNH"):
+                hs["ten"] = nhan_kenh
+                f_hs.write_text(json.dumps(hs, ensure_ascii=False, indent=2), encoding="utf-8")
+                print(f"• hồ sơ kênh còn tên mẫu: đã điền \"{nhan_kenh}\"")
     canh = [
         {"loai": "flow-chu", "nen": True, "ten": chon("mo", 0), "tren": b["mo"][0], "duoi": b["mo"][1],
          "tu": m[0], "den": m[1], "viTriPhuDe": 1420, "y": 150},
@@ -185,7 +210,7 @@ def main():
          "dong": [[mau, *x] for mau, x in zip(("xanh", "vang", "xanh"), b["khachTot"][:3])],
          "moc": moc_theo_chu([x[0] for x in b["khachTot"][:3]], m[3], m[4]), "tu": m[3], "den": m[4], "viTriPhuDe": 1500,
          "linhVat": False},
-        {"loai": "ket-comment", "clip": chon("ket", 2), "nhan": h.get("ten", ""), "tieuDe": b["ghiNho"],
+        {"loai": "ket-comment", "clip": chon("ket", 2), "nhan": nhan_kenh, "tieuDe": b["ghiNho"],
          "tuKhoa": b["lienHe"], "tu": m[4], "den": "het", "viTriPhuDe": 1480, "am": "thong-bao", "choLapCanhKet": True},
     ]
     ghi(da / "canh.json", {"canh": canh}, 1)

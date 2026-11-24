@@ -29,15 +29,21 @@ def b_script(ten, da):
     chay([sys.executable, THU_MUC / ten, da], cwd=THU_MUC)
 
 
-def dong_bo_engine(h):
+def dong_bo_engine(h, da=None):
     if not (ENGINE / "node_modules").exists():
         sys.exit(f"✘ Chưa cài engine ở {ENGINE}. Chạy cai_dat.py trước.")
     shutil.copytree(GOC_SKILL / "engine" / "src", ENGINE / "src", dirs_exist_ok=True)
-    ghi(ENGINE / "src" / "kenh.json", {k: h[k] for k in TRUONG_KENH})
+    kenh = {k: h.get(k, "") for k in TRUONG_KENH}
+    # Video giới thiệu chỉ dùng ảnh thật của người dẫn (TOI*) hoặc nền màu tự tạo (NEN*): không gắn nhãn "Cảnh AI minh họa" (thử 24/11/2026)
+    if da is not None and (da / "canh.json").exists() and "gioi-thieu" in ((da / "loai.txt").read_text(encoding="utf-8") if (da / "loai.txt").exists() else ""):
+        clip = [c.get("ten") or c.get("clip") for c in doc(da / "canh.json")["canh"] if c.get("ten") or c.get("clip")]
+        if clip and all(str(x).startswith(("TOI", "NEN")) for x in clip):
+            kenh["nhanCanhAI"] = ""
+    ghi(ENGINE / "src" / "kenh.json", kenh)
 
 
 def b_bundle(da, h):
-    dong_bo_engine(h)
+    dong_bo_engine(h, da)
     chay([NPX, "remotion", "bundle", "src/index.ts", f"--public-dir={da / 'public'}", f"--out-dir={da / 'render' / 'bundle'}", "--log=error"], cwd=ENGINE)
 
 
@@ -68,7 +74,7 @@ def b_anh_tinh(da):
         if k["hoi"] < MOC_HOI:
             print(f"✘ Giọng rời rạc: một hơi nói chỉ {k['hoi']:.2f} giây (cần ≥ {MOC_HOI}), viết lại bản đọc cho liền hơi")
         elif k["hoi"] > MOC_TREN:
-            print(f"✘ Giọng liền quá: một hơi {k['hoi']:.2f} giây (nên ≤ {MOC_TREN}), giữ dấu phẩy ở chỗ chuyển ý, chạy nghi_dau_phay.py")
+            print(f"⚠ (không chặn) Giọng liền quá: một hơi {k['hoi']:.2f} giây (nên ≤ {MOC_TREN}), giữ dấu phẩy ở chỗ chuyển ý, chạy nghi_dau_phay.py")
 
 
 def khoang_lang(file, toi_da=0.7):

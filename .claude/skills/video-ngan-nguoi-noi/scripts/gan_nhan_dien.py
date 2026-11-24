@@ -52,7 +52,8 @@ def gan(du_an, h=None):
     # Video giới thiệu bản thân của học viên (24/11/2026): hồ sơ mẫu còn đường dẫn logo, intro, outro chưa có file thật.
     # Loại gioi-thieu thì bỏ qua file thiếu thay vì dừng; video kênh vẫn dừng để bắt hồ sơ sai.
     from kiem_chot import loai_du_an
-    gioi_thieu = "gioi-thieu" in loai_du_an(Path(vao).resolve().parent.parent).split()
+    # Video "edit" từ file quay của học viên cũng vậy (thử máy sạch 24/11/2026 bị dừng ở đây vì thiếu watermark)
+    gioi_thieu = bool({"gioi-thieu", "edit"} & set(loai_du_an(Path(vao).resolve().parent.parent).split()))
     for k, f in list(tep.items()):
         if not f.exists():
             if gioi_thieu:
