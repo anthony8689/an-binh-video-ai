@@ -81,8 +81,14 @@ def main():
     dai = [x for x in dong if len(x) > 28]
     if dai:
         print("⚠ dòng phụ đề dài hơn 28 ký tự sẽ rớt chữ xuống dòng, nên tách:", " | ".join(dai))
-    if len(b["ghiNho"]) > 22:
-        print(f"⚠ ghiNho {len(b['ghiNho'])} ký tự, thẻ kết sẽ rớt chữ; nên ≤ 22 (câu đọc vẫn có thể dài hơn)")
+    if len(b["ghiNho"]) > 18:
+        print(f"⚠ ghiNho {len(b['ghiNho'])} ký tự, thẻ kết dễ rớt chữ giữa tên thương hiệu; nên ≤ 18 (câu đọc vẫn có thể dài hơn)")
+    # lời đọc và phụ đề phải cùng chữ, lệch là nghiệm thu "đủ lời" trượt sau khi đã tạo giọng (thử 24/11/2026)
+    import difflib, re as _re
+    _w = lambda t: _re.findall(r"\w+", t.lower())  # noqa: E731
+    giong_nhau = difflib.SequenceMatcher(None, _w(" ".join(dong)), _w((da / "doc-tts.txt").read_text(encoding="utf-8"))).ratio()
+    if giong_nhau < 0.85:
+        sys.exit(f"✘ doc-tts.txt lệch chữ với loi.txt (giống {giong_nhau:.0%}, cần ≥ 85%): viết doc-tts.txt trước rồi cắt loi.txt từ đúng những chữ đó")
     if len(phan) != 5 or sum(phan) != len(dong):
         sys.exit(f"✘ bni.json phan {phan} (tổng {sum(phan)}) phải đủ 5 phần và bằng số dòng loi.txt ({len(dong)})")
 

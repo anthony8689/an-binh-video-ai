@@ -110,7 +110,7 @@ if (ENGINE / "node_modules").exists():
         print(f'⚠ Chưa tải được trình duyệt Remotion; lần dựng đầu sẽ tự tải. Hoặc tự dán:  cd "{ENGINE}"; npx remotion browser ensure')
     else:
         print("✔ Remotion và trình duyệt dựng hình đã sẵn sàng")
-print("✔ engine:", ENGINE)
+print("✔ engine:", ENGINE, "(dòng npm warn ... esbuild nếu có là cảnh báo bình thường, không phải lỗi)")
 
 # Mô hình nghe lời Whisper large-v3 (khoảng 3 GB): tải luôn lúc cài ở nhà, tránh cả lớp cùng tải trên một mạng (24/11/2026)
 print("Tải mô hình nghe lời Whisper large-v3 (khoảng 3 GB, chỉ lần đầu)...")

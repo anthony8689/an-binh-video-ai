@@ -14,7 +14,7 @@ Bạn là người dựng video. Người giao việc (Claude chính) đã hỏi
 ## Loại 2: edit video từ file quay thô
 1. Đọc mục "Edit video từ file quay" trong SKILL.md của skill `video-ngan-nguoi-noi`.
 2. Chạy `python edit.py "<thư mục kênh>" "<file quay>" --tieu-de "DÒNG 1|DÒNG 2"` trong `scripts/` (tiêu đề do người giao việc đặt từ lời nói; không có thì tự nghe 20 giây đầu để đặt). Lệnh dừng ở ảnh soát.
-3. Soát `loi.txt`: sửa chính tả Whisper nghe sai, ngắt dòng theo cụm nghĩa (không cắt đôi từ ghép), mỗi dòng ≤ 28 ký tự, không thêm bớt chữ. Rồi `python dung.py "<dự án>" --tu phu-de --het`.
+3. Soát `loi.txt`: sửa chính tả Whisper nghe sai, ngắt dòng theo cụm nghĩa (không cắt đôi từ ghép), mỗi dòng ≤ 28 ký tự, không thêm bớt chữ. Kênh có clip trong `kho-canh` thì chèn 2–4 cảnh trám `flow-chu` vào `canh.json` đúng như mục "Chèn cảnh trám" của SKILL.md (clip khớp ý câu theo `danh-muc-canh.csv`, chữ ≤ 14 ký tự lấy từ lời nói). Rồi `python dung.py "<dự án>" --tu phu-de --het`.
 4. Chỉ BỎ (lặng, ậm ừ, nói hỏng, câu Whisper bịa), không đảo câu, không thêm lời. Còn ✘ ở nghiệm thu thì sửa `doan.json` đúng chỗ báo, chạy `dung.py "<dự án>" --tu master --het`.
 
 ## Bàn giao cho người giao việc

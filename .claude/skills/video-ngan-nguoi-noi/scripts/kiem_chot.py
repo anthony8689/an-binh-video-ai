@@ -210,8 +210,13 @@ def kiem_tinh_trang(da):
     import datetime
     da = Path(da)
     loi_txt = (da / "loi.txt").read_text(encoding="utf-8") if (da / "loi.txt").exists() else ""
+    # Video giới thiệu bản thân và video edit từ file quay của học viên không phải video giới thiệu công cụ: bỏ luật 15
+    # (thử máy học viên 24/11/2026: chữ "cái" bỏ dấu thành "cai" làm mọi video edit bị đòi tinh-trang.json)
+    if {"edit", "gioi-thieu"} & set(loai_du_an(da).split()):
+        return []
     chu = _chuan(loi_txt)
-    if not any(f" {k} " in chu for k in ("skill", "skills", "plugin", "mcp", "github", "repo", "extension", "cai")):
+    co_cai = re.search(r"(?<!\w)cài(?!\w)", loi_txt.lower()) is not None  # dò "cài" trên bản CÒN dấu, không nhầm "cái"
+    if not co_cai and not any(f" {k} " in chu for k in ("skill", "skills", "plugin", "mcp", "github", "repo", "extension")):
         return []
     f = da / "tinh-trang.json"
     if not f.exists():

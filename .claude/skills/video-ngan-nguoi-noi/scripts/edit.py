@@ -45,14 +45,23 @@ def main():
     ap.add_argument("--het", action="store_true")
     a = ap.parse_args()
     kenh, f = Path(a.kenh).resolve(), Path(a.file).resolve()
+    if (kenh / "INDEX.md").is_file() and (kenh / "01_CA_NHAN_VA_THUONG_HIEU").is_dir():
+        # Thử máy học viên 24/11/2026: không bao giờ làm video bên trong Bộ Não AI; dùng Video-AI cạnh nó
+        kenh = kenh.parent / "Video-AI"
+        print(f"• thư mục đưa vào là bộ não: làm video ở {kenh} (ngoài bộ não)")
     if not (kenh / "ho-so-kenh.json").exists():
-        sys.exit(f"✘ {kenh} chưa có ho-so-kenh.json, chạy cai_dat.py \"{kenh}\" trước.")
+        r = subprocess.run([sys.executable, ND / "cai_dat.py", kenh])
+        if r.returncode or not (kenh / "ho-so-kenh.json").exists():
+            sys.exit(f"✘ {kenh} chưa có ho-so-kenh.json, chạy cai_dat.py \"{kenh}\" trước.")
     from nhap_kho import nhap
     nhap(kenh)  # có gói KHO-HOC-VIEN trong Downloads thì tự nhận nhạc, cảnh
     du_an = kenh / "du-an"
     du_an.mkdir(exist_ok=True)
     so = 1 + max([int(m.group(1)) for x in du_an.iterdir() if (m := re.match(r"(\d+)-", x.name))] or [0])
     ten = a.ten or re.sub(r"[^a-z0-9]+", "-", khong_dau(f.stem)).strip("-")[:30] or "video"
+    if not a.ten and sum(c.isdigit() for c in ten) > len(ten) / 2:  # tên file Zalo toàn số: đặt theo ngày cho dễ đọc
+        import datetime
+        ten = "video-" + datetime.date.today().strftime("%d-%m")
     cu = sorted(du_an.glob(f"*-edit-{ten}"))
     da = cu[-1] if cu else du_an / f"{so:02d}-edit-{ten}"  # chạy lại cùng tên thì dùng lại dự án cũ
     da.mkdir(exist_ok=True)
@@ -253,7 +262,7 @@ def main():
         tu0 = re.sub(r"[.,!?]", "", dong[0]).split()
         tren, duoi = " ".join(tu0[:3]).upper(), " ".join(tu0[3:6]).upper()
     mo = min(4, max(1, len(dong) - 1))
-    canh = [{"loai": "nguoi-chu", "tu": 0, "den": mo + 1, "tren": tren, "duoi": duoi, "at": 3, "viTriPhuDe": 1560},
+    canh = [{"loai": "nguoi-chu", "tu": 0, "den": mo + 1, "tren": tren, "duoi": duoi, "at": 1, "viTriPhuDe": 1560},
             {"loai": "nguoi", "tu": mo + 1, "den": "het", "viTriPhuDe": 1560}]
     if len(dong) <= 2:
         canh = [canh[0] | {"den": "het"}]

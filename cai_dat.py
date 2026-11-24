@@ -18,6 +18,7 @@ Việc script làm:
 """
 import argparse
 import importlib.util
+import json
 import os
 import shutil
 import subprocess
@@ -184,8 +185,19 @@ def cai_skill_video(thu_muc):
     if not f.is_file():
         print(f"  ✘ Không thấy {f} — tải lại kho cho đủ.")
         return False
-    lenh = [sys.executable, "-X", "utf8", str(f)] + ([str(Path(thu_muc).resolve())] if thu_muc else [])
     env = dict(os.environ, PYTHONUTF8="1", USERPROFILE=str(nha()))
+    if not thu_muc:
+        # Thử máy học viên 24/11/2026: tạo sẵn thư mục Video-AI cạnh Bộ Não AI (và nhận gói KHO-HOC-VIEN) ngay lúc cài
+        try:
+            r = subprocess.run([sys.executable, "-X", "utf8", str(f.parent / "tim_bo_nao.py")], env=env, capture_output=True,
+                               text=True, encoding="utf-8", timeout=120)
+            tim = json.loads(r.stdout.strip().splitlines()[-1]) if r.stdout.strip() else {}
+            if tim.get("thu_muc_kenh"):
+                thu_muc = tim["thu_muc_kenh"]
+                print(f"  ✔ thấy bộ não ở {tim['duong_dan']}: thư mục làm video sẽ là {thu_muc} (nằm ngoài bộ não)")
+        except Exception as e:  # không tìm được thì thôi, lần làm video đầu skill tự tạo
+            print("  • chưa tìm bộ não lúc cài:", e)
+    lenh = [sys.executable, "-X", "utf8", str(f)] + ([str(Path(thu_muc).resolve())] if thu_muc else [])
     sys.stdout.flush()
     try:
         ma = subprocess.run(lenh, env=env, cwd=str(f.parent), timeout=1800).returncode

@@ -56,3 +56,16 @@ def nghe(file, goi_y=None, ss=None, t=None, vad=True):
     return [{"start": round(s.start + off, 2), "end": round(s.end + off, 2), "text": s.text.strip(),
              "words": [{"start": round(w.start + off, 2), "end": round(w.end + off, 2), "word": w.word, "prob": round(w.probability, 3)} for w in (s.words or [])]}
             for s in segs]
+
+
+if __name__ == "__main__":
+    # Nghe thử nhanh từ dòng lệnh (thử máy học viên 24/11/2026): python whisper_vi.py <file> [--giay 20]
+    import argparse
+    import sys
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    ap = argparse.ArgumentParser(description="Nghe lời tiếng Việt trong file âm thanh/video, in từng câu kèm giây.")
+    ap.add_argument("file")
+    ap.add_argument("--giay", type=float, default=None, help="chỉ nghe chừng này giây đầu (vd 20)")
+    a = ap.parse_args()
+    for c in nghe(a.file, t=a.giay):
+        print(f"[{c['start']:.1f}-{c['end']:.1f}] {c['text']}")
