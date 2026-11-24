@@ -1,0 +1,120 @@
+{
+ "ten": "Video thử KOL review nghỉ dưỡng 23/11",
+ "kol_chuan": "kol/1-bo1-linen-kem.png",
+ "bo_do": "áo hai dây linen màu kem cổ chữ V kín đáo, sơ mi linen trắng rộng khoác ngoài mở cúc (khoác ngay ngắn trên hai vai), chân váy linen màu be dài quá gối xẻ tà nhẹ bên hông, kính râm gọng nâu cài trên đầu, dép sandal quai mảnh màu be",
+ "canh": [
+  {
+   "id": "c1",
+   "boi_canh": "boi-canh/bc1.png",
+   "anh_kol": "anh-kol/k1.png",
+   "clip": "c1-noi-c.mp4",
+   "tu_the": "trung cảnh từ gối lên, đứng trước cửa nhà chữ A, tay phải giơ vẫy chào, tay trái cầm mũ cói",
+   "dong_tac": "giây 0-1,5 vẫy tay phải chào, người hơi nghiêng về máy; giây 1,5-4 tay phải ngửa chỉ ra sau về phía căn nhà gỗ; giây 4-6,5 cười, ngón trỏ phải giơ lên lắc nhẹ khi nói chưa lần nào; giây 6,5-8,5 tay phải đặt nhẹ lên ngực rồi buông"
+  },
+  {
+   "id": "c2",
+   "boi_canh": "boi-canh/bc2.png",
+   "anh_kol": "anh-kol/k2.png",
+   "clip": "c2-noi-d.mp4",
+   "tu_the": "toàn thân đứng trên bậc thứ ba cầu thang, tay trái vịn lan can, tay phải giơ ngang vai",
+   "dong_tac": "giây 0-2 tay phải giơ vẫy nhẹ; giây 2-4 tay phải đưa ra trước như trao mấy tấm ảnh; giây 4-6 tay phải chỉ vào thái dương khi nói agent nhận ra; giây 6-8,5 tay phải chỉ xa ra phía sau khi nói nhìn xuống biển; tay trái luôn vịn lan can",
+   "cat": [
+    [
+     0,
+     2.6,
+     1.0,
+     "boi-canh/bc2.png"
+    ],
+    [
+     2.95,
+     5.82,
+     1.0
+    ],
+    [
+     5.82,
+     7.2,
+     1.0,
+     "boi-canh/bc6.png"
+    ]
+   ],
+   "ghi_chu": "0-2,5 giây mặt nhíu mày: phủ ảnh bối cảnh khi nói em chỉ được gửi mấy tấm ảnh (nd-soi-mat-kol vòng 4)"
+  },
+  {
+   "id": "c3",
+   "boi_canh": "boi-canh/bc3.png",
+   "anh_kol": "anh-kol/k3.png",
+   "clip": "c3-noi.mp4",
+   "tu_the": "ngồi trên ghế mây ngoài hiên, lưng thẳng, mặt nhìn thẳng máy, đầu không nghiêng, tay phải giơ lên chỉ về phía đèn mây",
+   "dong_tac": "giây 0-2 tay phải chỉ lên đèn mây trên đầu, mắt liếc lên rồi nhìn lại máy; giây 2-4 tay phải xòe ra chỉ bộ bàn ghế; giây 4-6,5 tay phải đặt lên ngực cười khi nói tự viết lời; giây 6,5-8,5 hai tay đặt trên đầu gối, cười nhìn máy"
+  },
+  {
+   "id": "c4",
+   "boi_canh": "boi-canh/bc4.png",
+   "anh_kol": "anh-kol/k4.png",
+   "clip": "c4-noi-b.mp4",
+   "tu_the": "ngồi mép giường trắng, trung cảnh từ đùi lên, hai tay đặt trên gối, mũ cói đặt trên giường bên cạnh",
+   "dong_tac": "giây 0-2 hai tay xòe nhẹ ra hai bên giới thiệu căn phòng; giây 2-4,5 tay phải đưa lên như mời; giây 4,5-6,5 đếm ngón tay khi nói tiền xe, tiền phòng; giây 6,5-8,5 nghiêng đầu nhẹ, hai tay ngửa khi nói đợi người ta rảnh"
+  },
+  {
+   "id": "c5",
+   "boi_canh": "boi-canh/bc5.png",
+   "anh_kol": "anh-kol/k5.png",
+   "clip": "c5-noi-f.mp4",
+   "tu_the": "trung cảnh, tựa nhẹ lan can ban công trắng, quay người về máy",
+   "dong_tac": "tay phải đặt trên lan can, mỉm cười, tay trái mở nhẹ ở câu hỏi cuối",
+   "cat": [
+    [
+     0,
+     7.25,
+     1.0
+    ]
+   ],
+   "ghi_chu": "dùng 0-7,25 giây, khung rộng: chấm chính thức 4/5 (5,76-7,25 mày hơi nhướng, đọc như biểu cảm hỏi)"
+  },
+  {
+   "id": "c6",
+   "boi_canh": "boi-canh/bc6.png",
+   "anh_kol": "anh-kol/k6.png",
+   "clip": "c6-noi.mp4",
+   "tu_the": "trung cảnh từ hông lên, vịnh biển phía sau, gió nhẹ làm tóc bay",
+   "dong_tac": "giây 0-2 hai tay làm khung chụp ảnh trước mặt; giây 2-4,5 tay phải chỉ lên khi nói agent lo kịch bản; giây 4,5-6,5 tay phải chỉ vào mình khi nói người mẫu ảo như em; giây 6,5-8,5 hai tay mở ra cười"
+  },
+  {
+   "id": "c7",
+   "boi_canh": "boi-canh/bc7.png",
+   "anh_kol": "anh-kol/k7.png",
+   "clip": "c7-noi-c.mp4",
+   "tu_the": "trung cảnh, hai tay ôm trái dừa xanh có ống hút trước bụng, trời hoàng hôn hồng cam phía sau",
+   "dong_tac": "giây 0-3 tay trái ôm trái dừa, tay phải chỉ ra biển phía sau; giây 3-5,5 tay phải giơ lên vẫy nhẹ về phía trời hoàng hôn; giây 5,5-8,5 hai tay ôm trái dừa, nghiêng đầu cười"
+  },
+  {
+   "id": "c8",
+   "boi_canh": "boi-canh/bc1.png",
+   "anh_kol": "anh-kol/k8.png",
+   "clip": "c8-noi-d.mp4",
+   "tu_the": "toàn thân đứng giữa khung trước cửa nhà chữ A mở, hai tay buông",
+   "dong_tac": "giây 0-2 bước nhẹ một bước về phía máy, tay phải giơ lên; giây 2-5 tay phải chỉ xuống dưới khung hình khi nói bình luận; giây 5-8,5 hai tay xòe mời, cười, vẫy chào ở cuối",
+   "ghi_chu": "chỉ dùng 0-7,0 giây, sau đó mặt bè (nd-soi-mat-kol vòng 4)",
+   "cat": [
+    [
+     0.4,
+     1.5,
+     1.0,
+     "boi-canh/bc1.png"
+    ],
+    [
+     1.5,
+     4.2,
+     1.0
+    ],
+    [
+     4.2,
+     7.0,
+     1.12
+    ]
+   ],
+   "giu_cuoi": 0.9
+  }
+ ],
+ "anh_bo_do": "kol/1-bo1-linen-kem.png"
+}
